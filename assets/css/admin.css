@@ -1,0 +1,157 @@
+.sbbt-wrap .sbbt-intro {
+	max-width: 60ch;
+	font-size: 14px;
+}
+
+.sbbt-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+	gap: 16px;
+	margin: 20px 0;
+}
+
+.sbbt-card {
+	padding: 18px 20px;
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-left: 4px solid #dcdcde;
+	border-radius: 6px;
+}
+
+.sbbt-card.is-on {
+	border-left-color: #2271b1;
+}
+
+.sbbt-card__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+.sbbt-card__head h2 {
+	margin: 0;
+	font-size: 15px;
+	line-height: 1.3;
+}
+
+.sbbt-card__desc {
+	margin: 10px 0 0;
+	color: #50575e;
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+.sbbt-card__meta {
+	margin: 12px 0 0;
+	color: #787c82;
+	font-size: 11px;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+.sbbt-switch {
+	position: relative;
+	flex: 0 0 auto;
+	cursor: pointer;
+}
+
+.sbbt-switch input {
+	position: absolute;
+	opacity: 0;
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	cursor: pointer;
+}
+
+.sbbt-switch__track {
+	display: block;
+	width: 42px;
+	height: 24px;
+	background: #c3c4c7;
+	border-radius: 12px;
+	transition: background 0.15s ease;
+}
+
+.sbbt-switch__dot {
+	display: block;
+	width: 18px;
+	height: 18px;
+	margin: 3px;
+	background: #fff;
+	border-radius: 50%;
+	transition: transform 0.15s ease;
+}
+
+.sbbt-switch input:checked + .sbbt-switch__track {
+	background: #2271b1;
+}
+
+.sbbt-switch input:checked + .sbbt-switch__track .sbbt-switch__dot {
+	transform: translateX(18px);
+}
+
+.sbbt-switch input:focus-visible + .sbbt-switch__track {
+	outline: 2px solid #2271b1;
+	outline-offset: 2px;
+}
+/* Hub only: publish release */
+.sbbt-release {
+	margin-top: 32px;
+	padding-top: 24px;
+	border-top: 1px solid #dcdcde;
+}
+
+.sbbt-release > h2 {
+	margin: 0 0 6px;
+	font-size: 18px;
+}
+
+.sbbt-release .notice.inline {
+	margin: 16px 0 0;
+}
+
+.sbbt-release__card {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	border-left-color: #2271b1;
+}
+
+.sbbt-release__card h3 {
+	margin: 0;
+	font-size: 15px;
+	line-height: 1.3;
+}
+
+.sbbt-release__card .sbbt-card__desc {
+	margin: 0;
+}
+
+.sbbt-release__card form {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	margin-top: auto;
+}
+
+.sbbt-release__card label {
+	margin-top: 4px;
+	font-weight: 600;
+}
+
+.sbbt-release__card input[type="text"],
+.sbbt-release__card input[type="password"],
+.sbbt-release__card textarea {
+	width: 100%;
+	max-width: 100%;
+}
+
+.sbbt-release__actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 12px;
+	margin-top: 6px;
+}
