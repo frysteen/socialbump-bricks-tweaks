@@ -3,11 +3,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class SB_Element_Image_Carousel extends \Bricks\Element {
+class SBBT_Element_Image_Carousel extends \Bricks\Element {
 	public $category = 'media';
 	public $name     = 'sb-image-carousel';
 	public $icon     = 'ti-layout-slider';
-	public $scripts  = [ 'bricksSbCarousel' ];
+	public $scripts  = [ 'bricksSbbtCarousel' ];
 
 	public function get_label() {
 		return esc_html__( 'Image Carousel (SB)', 'sb-bricks-tweaks' );
@@ -16,13 +16,13 @@ class SB_Element_Image_Carousel extends \Bricks\Element {
 	public function enqueue_scripts() {
 		wp_enqueue_script( 'bricks-splide' );
 		wp_enqueue_style( 'bricks-splide' );
-		wp_enqueue_style( 'sb-carousel' );
+		wp_enqueue_style( 'sbbt-carousel' );
 
 		if ( isset( $this->settings['autoplayMode'] ) && $this->settings['autoplayMode'] === 'continuous' ) {
-			wp_enqueue_script( 'sb-splide-auto-scroll' );
+			wp_enqueue_script( 'sbbt-splide-auto-scroll' );
 		}
 
-		wp_enqueue_script( 'sb-carousel' );
+		wp_enqueue_script( 'sbbt-carousel' );
 
 		if ( ! empty( $this->settings['lightbox'] ) ) {
 			wp_enqueue_script( 'bricks-photoswipe' );
@@ -769,7 +769,7 @@ class SB_Element_Image_Carousel extends \Bricks\Element {
 
 			while ( count( $images ) < $needed ) {
 				$duplicate             = $source[ $i % $real_count ];
-				$duplicate['sb_dupe']  = true;
+				$duplicate['sbbt_dupe']  = true;
 				$images[]              = $duplicate;
 				$i++;
 			}
@@ -1022,7 +1022,7 @@ class SB_Element_Image_Carousel extends \Bricks\Element {
 
 		foreach ( $images as $index => $image ) {
 			$image_id = ! empty( $image['id'] ) ? (int) $image['id'] : 0;
-			$is_dupe  = ! empty( $image['sb_dupe'] );
+			$is_dupe  = ! empty( $image['sbbt_dupe'] );
 
 			if ( ! $is_dupe ) {
 				$position++;

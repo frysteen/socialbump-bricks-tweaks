@@ -244,7 +244,7 @@
 	}
 
 	/* Bricks calls this on load and after builder updates. */
-	window.bricksSbCarousel = run;
+	window.bricksSbbtCarousel = run;
 
 	if ( document.readyState === 'loading' ) {
 		document.addEventListener( 'DOMContentLoaded', run );

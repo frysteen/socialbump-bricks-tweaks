@@ -49,53 +49,6 @@
 	text-transform: uppercase;
 	letter-spacing: 0.04em;
 }
-
-.sbbt-switch {
-	position: relative;
-	flex: 0 0 auto;
-	cursor: pointer;
-}
-
-.sbbt-switch input {
-	position: absolute;
-	opacity: 0;
-	width: 100%;
-	height: 100%;
-	margin: 0;
-	cursor: pointer;
-}
-
-.sbbt-switch__track {
-	display: block;
-	width: 42px;
-	height: 24px;
-	background: #c3c4c7;
-	border-radius: 12px;
-	transition: background 0.15s ease;
-}
-
-.sbbt-switch__dot {
-	display: block;
-	width: 18px;
-	height: 18px;
-	margin: 3px;
-	background: #fff;
-	border-radius: 50%;
-	transition: transform 0.15s ease;
-}
-
-.sbbt-switch input:checked + .sbbt-switch__track {
-	background: #2271b1;
-}
-
-.sbbt-switch input:checked + .sbbt-switch__track .sbbt-switch__dot {
-	transform: translateX(18px);
-}
-
-.sbbt-switch input:focus-visible + .sbbt-switch__track {
-	outline: 2px solid #2271b1;
-	outline-offset: 2px;
-}
 /* Hub only: publish release */
 .sbbt-release {
 	margin-top: 32px;
@@ -154,4 +107,254 @@
 	align-items: center;
 	gap: 12px;
 	margin-top: 6px;
+}
+/* Settings page boxes */
+.sbbt-section,
+.sbbt-release {
+	margin: 24px 0 0;
+	padding: 20px 24px 24px;
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 8px;
+}
+
+.sbbt-section__head {
+	margin-bottom: 16px;
+	padding-bottom: 14px;
+	border-bottom: 1px solid #f0f0f1;
+}
+
+.sbbt-section__head h2 {
+	margin: 0 0 4px;
+	font-size: 16px;
+	line-height: 1.3;
+}
+
+.sbbt-section__head p {
+	max-width: 70ch;
+	margin: 0;
+	color: #50575e;
+	font-size: 13px;
+}
+
+.sbbt-section .sbbt-grid {
+	margin: 0;
+}
+
+.sbbt-section .sbbt-card,
+.sbbt-release .sbbt-card {
+	background: #f6f7f7;
+}
+
+.sbbt-card__head h3 {
+	margin: 0;
+	font-size: 15px;
+	line-height: 1.3;
+}
+
+/* Toggle switches */
+.sbbt-switch {
+	position: relative;
+	display: inline-flex;
+	flex: 0 0 auto;
+	cursor: pointer;
+}
+
+.sbbt-switch input {
+	position: absolute;
+	z-index: 1;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	opacity: 0;
+	cursor: pointer;
+}
+
+.sbbt-switch__track {
+	position: relative;
+	display: block;
+	width: 40px;
+	height: 22px;
+	background: #c3c4c7;
+	border-radius: 999px;
+	transition: background-color 0.2s ease, box-shadow 0.25s ease;
+}
+
+.sbbt-switch__dot {
+	position: absolute;
+	top: 3px;
+	left: 3px;
+	display: block;
+	width: 16px;
+	height: 16px;
+	margin: 0;
+	background: #fff;
+	border-radius: 50%;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+	transition: transform 0.2s ease;
+}
+
+.sbbt-switch:hover .sbbt-switch__track {
+	background: #a7aaad;
+}
+
+.sbbt-switch input:checked + .sbbt-switch__track {
+	background: #00a32a;
+	box-shadow: 0 0 0 1px rgba(0, 163, 42, 0.25), 0 0 10px rgba(0, 163, 42, 0.55);
+}
+
+.sbbt-switch:hover input:checked + .sbbt-switch__track {
+	background: #008a20;
+	box-shadow: 0 0 0 1px rgba(0, 163, 42, 0.3), 0 0 14px rgba(0, 163, 42, 0.7);
+}
+
+.sbbt-switch input:checked + .sbbt-switch__track .sbbt-switch__dot {
+	transform: translateX(18px);
+}
+
+.sbbt-switch input:focus-visible + .sbbt-switch__track {
+	outline: 2px solid #2271b1;
+	outline-offset: 2px;
+}
+
+.sbbt-switch input:disabled {
+	cursor: not-allowed;
+}
+
+.sbbt-switch input:disabled + .sbbt-switch__track,
+.sbbt-switch:hover input:disabled + .sbbt-switch__track {
+	background: #dcdcde;
+}
+
+.sbbt-switch input:disabled + .sbbt-switch__track .sbbt-switch__dot {
+	box-shadow: none;
+}
+
+/* Modules that need a missing plugin */
+.sbbt-card.is-unavailable {
+	border-left-color: #dcdcde;
+}
+
+.sbbt-card.is-unavailable .sbbt-card__head h3,
+.sbbt-card.is-unavailable .sbbt-card__desc {
+	opacity: 0.55;
+}
+
+.sbbt-card__needs {
+	margin: 10px 0 0;
+	color: #8a6116;
+	font-size: 12px;
+	font-weight: 600;
+}
+
+/* Settings link on a card */
+.sbbt-card__link {
+	margin: 10px 0 0;
+	font-size: 13px;
+}
+
+/* Card settings: only while the switch is on */
+.sbbt-card__settings {
+	display: none;
+	margin-top: 14px;
+	padding-top: 14px;
+	border-top: 1px solid #dcdcde;
+}
+
+.sbbt-card.is-on .sbbt-card__settings {
+	display: block;
+}
+
+.sbbt-field + .sbbt-field {
+	margin-top: 12px;
+}
+
+.sbbt-field__label {
+	display: block;
+	margin-bottom: 6px;
+	font-weight: 600;
+}
+
+.sbbt-field__desc {
+	margin: 6px 0 0;
+	color: #646970;
+	font-size: 12px;
+	line-height: 1.5;
+}
+
+.sbbt-field .wp-picker-container .wp-color-result.button {
+	margin: 0 6px 0 0;
+}
+
+/* SocialBUMP header banner */
+.sbbt-header {
+	margin: 20px 0 0;
+	padding: 22px 28px;
+	background: #16171c;
+	border-radius: 8px;
+	color: #fff;
+}
+
+.sbbt-header__brand {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 16px;
+}
+
+.sbbt-header__logo {
+	display: block;
+	width: auto;
+	height: 28px;
+}
+
+.wrap .sbbt-header__title {
+	margin: 0;
+	padding: 0 0 0 16px;
+	border-left: 1px solid rgba(255, 255, 255, 0.2);
+	color: #fff;
+	font-size: 20px;
+	font-weight: 600;
+	line-height: 28px;
+}
+
+.sbbt-header__intro {
+	max-width: none;
+	margin: 14px 0 0;
+	color: #a7aaad;
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+.sbbt-wrap .wp-header-end {
+	margin: 0;
+}
+
+/* Publish release intro: full width, balanced lines */
+.sbbt-release .sbbt-intro {
+	max-width: none;
+	text-wrap: balance;
+}
+
+/* Colour field: swatch + text box */
+.sbbt-colour {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.sbbt-colour__swatch {
+	width: 32px;
+	height: 30px;
+	padding: 2px;
+	border: 1px solid #8c8f94;
+	border-radius: 4px;
+	background: #fff;
+	cursor: pointer;
+}
+
+.sbbt-colour__value {
+	width: 220px;
 }

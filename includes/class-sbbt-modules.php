@@ -8,16 +8,40 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * To add a module: create includes/modules/<slug>/module.php returning an array.
  * Nothing else in the plugin needs editing.
+ *
+ * A module can have its own settings page under the SB Bricks Tweaks menu:
+ *
+ *   'admin_page' => [
+ *       'title'  => 'Carousel Settings',             // Menu label and page heading.
+ *       'render' => function ( $module ) { ... },   // Prints the page content.
+ *   ],
+ *
+ * The page only appears while the module is switched on and has what it needs.
+ *
+ * Small options can sit on the module's card instead of a page:
+ *
+ *   'settings' => [
+ *       'colour' => [ 'type' => 'color', 'label' => 'Icon colour', 'default' => '' ],
+ *   ],
+ *
+ * Types: color, checkbox, number (min, max, step), select (options), text.
+ * Read a value with SBBT_Modules::instance()->setting( 'module-id', 'colour' ).
  */
 class SBBT_Modules {
 
 	private static $instance = null;
+
+	/** Where card settings are saved, keyed by module id. */
+	const SETTINGS_OPTION = 'sbbt_module_settings';
 
 	/** All discovered modules, keyed by id. */
 	private $modules = [];
 
 	/** Modules that are switched on and have booted. */
 	private $active = [];
+
+	/** Cached result of each dependency check. */
+	private $dependency_state = [];
 
 	public static function instance() {
 		if ( self::$instance === null ) {
@@ -67,10 +91,18 @@ class SBBT_Modules {
 					'description' => '',
 					'type'        => 'element',
 					'default'     => true,
+					'section'     => '',
+					'requires'    => [],
+					'admin_page'  => null,
+					'settings'    => [],
 					'path'        => trailingslashit( $dir ),
 					'url'         => trailingslashit( SBBT_URL . 'includes/modules/' . basename( $dir ) ),
 				]
 			);
+
+			if ( $module['section'] === '' ) {
+				$module['section'] = $module['type'] === 'element' ? 'elements' : 'extras';
+			}
 
 			$this->modules[ $module['id'] ] = $module;
 		}
@@ -94,7 +126,7 @@ class SBBT_Modules {
 	 * Saved on/off state, falling back to each module default.
 	 */
 	public function get_states() {
-		$saved  = get_option( SBBT_OPTION, [] );
+		$saved  = (array) get_option( SBBT_OPTION, [] );
 		$states = [];
 
 		foreach ( $this->modules as $id => $module ) {
@@ -109,7 +141,146 @@ class SBBT_Modules {
 	public function is_enabled( $id ) {
 		$states = $this->get_states();
 
-		return ! empty( $states[ $id ] );
+		return ! empty( $states[ $id ] ) && ! $this->missing( $id );
+	}
+
+	/**
+	 * A module's card setting: the saved value, or its default.
+	 */
+	public function setting( $id, $key ) {
+		$saved = (array) get_option( self::SETTINGS_OPTION, [] );
+
+		if ( isset( $saved[ $id ] ) && is_array( $saved[ $id ] ) && array_key_exists( $key, $saved[ $id ] ) ) {
+			return $saved[ $id ][ $key ];
+		}
+
+		return isset( $this->modules[ $id ]['settings'][ $key ]['default'] ) ? $this->modules[ $id ]['settings'][ $key ]['default'] : null;
+	}
+
+	/**
+	 * Clean a submitted card setting so only valid values are ever saved.
+	 */
+	public function sanitize_setting( $field, $value ) {
+		$type    = isset( $field['type'] ) ? $field['type'] : 'text';
+		$default = isset( $field['default'] ) ? $field['default'] : '';
+
+		switch ( $type ) {
+			case 'color':
+				$value = is_string( $value ) ? trim( $value ) : '';
+
+				if ( $value === '' ) {
+					return '';
+				}
+
+				$clean = self::sanitize_css_colour( $value );
+
+				return $clean !== '' ? $clean : $default;
+
+			case 'checkbox':
+				return empty( $value ) ? 0 : 1;
+
+			case 'number':
+				if ( ! is_numeric( $value ) ) {
+					return $default;
+				}
+
+				$number = $value + 0;
+
+				if ( isset( $field['min'] ) ) {
+					$number = max( $field['min'], $number );
+				}
+
+				if ( isset( $field['max'] ) ) {
+					$number = min( $field['max'], $number );
+				}
+
+				return $number;
+
+			case 'select':
+				$value = is_scalar( $value ) ? (string) $value : '';
+
+				return isset( $field['options'][ $value ] ) ? $value : $default;
+
+			default:
+				return is_scalar( $value ) ? sanitize_text_field( (string) $value ) : $default;
+		}
+	}
+
+	/**
+	 * A safe CSS colour: hex, rgb()/hsl(), or a variable like var(--primary) or var(--primary, #fff).
+	 * Returns '' for anything else, so nothing unexpected reaches a style rule.
+	 */
+	public static function sanitize_css_colour( $value ) {
+		$value = is_string( $value ) ? trim( $value ) : '';
+
+		if ( $value === '' ) {
+			return '';
+		}
+
+		$hex  = '#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})';
+		$func = '(?:rgba?|hsla?)\(\s*[0-9.%,\s\/deg-]+\)';
+		$var  = 'var\(\s*--[A-Za-z0-9_-]+\s*\)';
+
+		if ( preg_match( '/^' . $hex . '$/', $value ) ) {
+			return strtolower( $value );
+		}
+
+		if ( preg_match( '/^' . $func . '$/i', $value ) ) {
+			return $value;
+		}
+
+		if ( preg_match( '/^var\(\s*--[A-Za-z0-9_-]+\s*(?:,\s*(?:' . $hex . '|' . $func . '|' . $var . '|[a-zA-Z]+)\s*)?\)$/i', $value ) ) {
+			return preg_replace( '/\s+/', ' ', $value );
+		}
+
+		return '';
+	}
+
+	/**
+	 * Plugins a module can depend on. A module lists the keys it needs in
+	 * 'requires' in its module.php, e.g. 'requires' => [ 'acf' ].
+	 */
+	private function dependencies() {
+		return (array) apply_filters(
+			'sbbt/dependencies',
+			[
+				'acf' => [
+					'label'  => 'Advanced Custom Fields',
+					'active' => function () {
+						return class_exists( 'ACF' );
+					},
+				],
+			]
+		);
+	}
+
+	/**
+	 * Names of anything this module needs that is missing on this site.
+	 * A module with something missing never loads, whatever its switch says.
+	 */
+	public function missing( $id ) {
+		if ( empty( $this->modules[ $id ]['requires'] ) ) {
+			return [];
+		}
+
+		$dependencies = $this->dependencies();
+		$missing      = [];
+
+		foreach ( (array) $this->modules[ $id ]['requires'] as $key ) {
+			if ( ! isset( $dependencies[ $key ] ) ) {
+				continue;
+			}
+
+			if ( ! isset( $this->dependency_state[ $key ] ) ) {
+				$this->dependency_state[ $key ] = (bool) call_user_func( $dependencies[ $key ]['active'] );
+			}
+
+			if ( ! $this->dependency_state[ $key ] ) {
+				$missing[] = $dependencies[ $key ]['label'];
+			}
+		}
+
+		return $missing;
 	}
 
 	/**

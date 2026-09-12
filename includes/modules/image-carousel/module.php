@@ -11,7 +11,7 @@ return [
 	'default'       => true,
 	'element_file'  => 'class-element-image-carousel.php',
 	'element_name'  => 'sb-image-carousel',
-	'element_class' => 'SB_Element_Image_Carousel',
+	'element_class' => 'SBBT_Element_Image_Carousel',
 
 	'assets' => function ( $module ) {
 		$ver = function ( $relative ) use ( $module ) {
@@ -21,14 +21,14 @@ return [
 		};
 
 		wp_register_style(
-			'sb-carousel',
+			'sbbt-carousel',
 			$module['url'] . 'assets/css/sb-carousel.css',
 			[],
 			$ver( 'assets/css/sb-carousel.css' )
 		);
 
 		wp_register_script(
-			'sb-splide-auto-scroll',
+			'sbbt-splide-auto-scroll',
 			$module['url'] . 'assets/js/splide-extension-auto-scroll.min.js',
 			[ 'bricks-splide' ],
 			'0.5.3',
@@ -36,7 +36,7 @@ return [
 		);
 
 		wp_register_script(
-			'sb-carousel',
+			'sbbt-carousel',
 			$module['url'] . 'assets/js/sb-carousel.js',
 			[ 'bricks-splide' ],
 			$ver( 'assets/js/sb-carousel.js' ),
