@@ -87,11 +87,9 @@ class SBBT_Conditions {
 			];
 
 			if ( ! empty( $condition['value'] ) ) {
-				$choices = [];
-
-				if ( isset( $condition['value']['options'] ) && is_callable( $condition['value']['options'] ) ) {
-					$choices = (array) call_user_func( $condition['value']['options'] );
-				}
+				// Choices may be given as a plain list or as a function that builds one.
+				$choices = isset( $condition['value']['options'] ) ? $condition['value']['options'] : [];
+				$choices = is_callable( $choices ) ? (array) call_user_func( $choices ) : (array) $choices;
 
 				$option['value'] = [
 					'type'        => 'select',

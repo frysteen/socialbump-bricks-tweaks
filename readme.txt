@@ -4,7 +4,7 @@ Tags: bricks, acf
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.2.0
+Stable tag: 1.2.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -32,6 +32,10 @@ Extras:
 * Default To WP Editor: open the WordPress editor on posts with no Bricks content.
 
 == Changelog ==
+= 1.2.1 =
+* Fix: the Bricks Content value was an empty dropdown, so it had to be typed by hand
+* Change: the value now reads Set or Not set
+
 = 1.2.0 =
 * Change: the Bricks Content condition now reads as Is / Is not with a value, matching the built in conditions. Conditions saved in the old format keep working.
 
