@@ -3,7 +3,7 @@
  * Plugin Name: SocialBUMP Bricks Tweaks
  * Plugin URI:  https://socialbump.com.au
  * Description: A home for SocialBUMP custom Bricks Builder elements and site tweaks. Turn each one on or off under Bricks > SB Tweaks.
- * Version:     1.2.0
+ * Version:     1.2.1
  * Author:      SocialBUMP
  * Author URI:  https://socialbump.com.au
  * License:     GPL-2.0-or-later
@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SBBT_VERSION', '1.2.0' );
+define( 'SBBT_VERSION', '1.2.1' );
 define( 'SBBT_FILE', __FILE__ );
 define( 'SBBT_PATH', plugin_dir_path( __FILE__ ) );
 define( 'SBBT_URL', plugin_dir_url( __FILE__ ) );
@@ -46,6 +46,15 @@ function sbbt_updater() {
 			SBBT_FILE,
 			SBBT_SLUG
 		);
+
+		/**
+		 * Some plugins hook plugins_api at the default priority and return false for
+		 * every request, not just their own, which wipes out the plugin details this
+		 * updater supplies (FooEvents does this). Re-add the details callback later so
+		 * the View details screen still works on those sites.
+		 */
+		remove_filter( 'plugins_api', [ $checker, 'injectInfo' ], 20 );
+		add_filter( 'plugins_api', [ $checker, 'injectInfo' ], 999, 3 );
 
 		// 2 = Api::REQUIRE_RELEASE_ASSETS. Releases without the zip are ignored.
 		$checker->getVcsApi()->enableReleaseAssets( '/^socialbump-bricks-tweaks\.zip$/', 2 );

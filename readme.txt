@@ -4,7 +4,7 @@ Tags: bricks, acf
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.2.0
+Stable tag: 1.2.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -34,6 +34,9 @@ Extras:
 Updates are published from the hub site through GitHub Releases, so they appear in WordPress and MainWP like any other plugin update.
 
 == Changelog ==
+
+= 1.2.1 =
+* Fix: View version details now works on sites where another plugin blocks the lookup
 
 = 1.2.0 =
 * New: ACF Gallery Loop, loop over a gallery and control the markup yourself
