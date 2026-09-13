@@ -503,3 +503,22 @@ a.sbbt-header__version.is-outdated:focus {
 .sbbt-switch input[type="checkbox"]::before {
 	content: none;
 }
+
+/* The logo takes you back to the main page */
+.sbbt-header__home {
+	display: inline-flex;
+	align-items: center;
+	line-height: 0;
+	border-radius: 4px;
+	transition: opacity 0.15s ease;
+}
+
+.sbbt-header__home:hover,
+.sbbt-header__home:focus {
+	opacity: 0.75;
+}
+
+.sbbt-header__home:focus-visible {
+	outline: 2px solid #85df07;
+	outline-offset: 3px;
+}
