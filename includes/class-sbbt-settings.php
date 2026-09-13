@@ -185,8 +185,8 @@ class SBBT_Settings {
 		<div class="sbbt-header">
 			<div class="sbbt-header__brand">
 				<a class="sbbt-header__home" href="<?php echo esc_url( admin_url( 'admin.php?page=' . self::PAGE_SLUG ) ); ?>">
-					<img class="sbbt-header__logo" src="<?php echo esc_url( SBBT_URL . 'assets/img/socialbump-logo-light.svg' ); ?>
-				</a>" alt="SocialBUMP" width="203" height="28">
+					<img class="sbbt-header__logo" src="<?php echo esc_url( SBBT_URL . 'assets/img/socialbump-logo-light.svg' ); ?>" alt="SocialBUMP" width="203" height="28">
+				</a>
 				<h1 class="sbbt-header__title"><?php echo esc_html( $title ); ?></h1>
 				<?php
 				$state   = get_site_transient( 'update_plugins' );
