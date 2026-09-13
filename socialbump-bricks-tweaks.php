@@ -3,7 +3,7 @@
  * Plugin Name: SocialBUMP Bricks Tweaks
  * Plugin URI:  https://socialbump.com.au
  * Description: A home for SocialBUMP custom Bricks Builder elements and site tweaks. Turn each one on or off under SB Bricks Tweaks.
- * Version:     0.1.4
+ * Version:     0.1.5
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Author:      SocialBUMP
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SBBT_VERSION', '0.1.4' );
+define( 'SBBT_VERSION', '0.1.5' );
 define( 'SBBT_FILE', __FILE__ );
 define( 'SBBT_PATH', plugin_dir_path( __FILE__ ) );
 define( 'SBBT_URL', plugin_dir_url( __FILE__ ) );
@@ -125,6 +125,30 @@ function sbbt_activate() {
 	);
 }
 register_activation_hook( __FILE__, 'sbbt_activate' );
+
+/**
+ * Note a change for the next release.
+ *
+ * Anything logged here fills in the notes box on the Publishing page, and the
+ * list is emptied once a release goes out.
+ */
+function sbbt_log_change( $text ) {
+	$text = trim( wp_strip_all_tags( (string) $text ) );
+
+	if ( $text === '' ) {
+		return;
+	}
+
+	$list = (array) get_option( 'sbbt_pending_changes', [] );
+
+	if ( in_array( $text, $list, true ) ) {
+		return;
+	}
+
+	$list[] = $text;
+
+	update_option( 'sbbt_pending_changes', array_slice( $list, -50 ), false );
+}
 
 function sbbt_boot() {
 	if ( ! sbbt_bricks_active() ) {

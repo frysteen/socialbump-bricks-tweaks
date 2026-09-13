@@ -262,6 +262,12 @@ class SBBT_Modules {
 					return ! SBBT_Acf_Source::is_bundled();
 					},
 				],
+				'woocommerce' => [
+					'label'  => 'WooCommerce',
+					'active' => function () {
+						return class_exists( 'WooCommerce' );
+					},
+				],
 			]
 		);
 	}

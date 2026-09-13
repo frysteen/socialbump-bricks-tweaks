@@ -134,7 +134,11 @@ class SBBT_Conditions {
 		// get_the_ID() follows the current Bricks query loop, so inside a loop this checks each post.
 		$post_id = (int) get_the_ID();
 
-		if ( ! $post_id ) {
+		// Most conditions ask about the current post. One that does not, such as an
+		// archive condition, sets 'needs_post' => false and is checked regardless.
+		$needs_post = ! isset( $definition['needs_post'] ) || $definition['needs_post'];
+
+		if ( $needs_post && ! $post_id ) {
 			return false;
 		}
 

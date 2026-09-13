@@ -4,7 +4,7 @@ Tags: bricks, acf
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.1.4
+Stable tag: 0.1.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -32,6 +32,14 @@ Extras:
 * Default To WP Editor: open the WordPress editor on posts with no Bricks content.
 
 == Changelog ==
+= 0.1.5 =
+* Publishing now retries GitHub when it fails, checks the zip attached, and no longer undoes a release that actually went out.
+* Publish page fills in the notes box from changes logged since the last release.
+* Added an SB Bricks Tweaks shortcut to the admin bar, with a dropdown to each of its pages.
+* Admin bar shortcut highlights the plugin and the page you are on.
+* New WooCommerce Archive Display condition, so a shop template can switch between a product loop and a category loop without a snippet.
+* Modules can now require WooCommerce, and a condition can be checked on an archive where there is no single post.
+
 = 0.1.4 =
 * Maintenance release.
 
