@@ -6,8 +6,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Bricks Content: whether the post was built with Bricks.
  *
- * Reads as Bricks Content / Is / Set, matching how the built in conditions are
- * worded.
+ * Reads as Bricks Content / Is / Built with Bricks, matching how the built in
+ * conditions are worded.
  *
  * Conditions saved before this had no value and used has_content or
  * has_no_content as the comparison. Those are still understood, so existing
@@ -23,8 +23,8 @@ return [
 	'value'   => [
 		'placeholder' => 'Select',
 		'options'     => [
-			'1' => 'Set',
-			'0' => 'Not set',
+			'1' => 'Built with Bricks',
+			'0' => 'Not built with Bricks',
 		],
 	],
 	'check'   => function ( $compare, $value, $post_id ) {
