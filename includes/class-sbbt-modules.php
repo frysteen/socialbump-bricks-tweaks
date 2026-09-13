@@ -340,7 +340,19 @@ class SBBT_Modules {
 				continue;
 			}
 
-			call_user_func( $module['boot'], $module );
+			/**
+			 * A broken module should never take the site down with it, so a fatal
+			 * inside one is caught, logged and skipped. Everything else carries on.
+			 */
+			try {
+				call_user_func( $module['boot'], $module );
+			} catch ( \Throwable $e ) {
+				unset( $this->active[ $module['id'] ] );
+
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					error_log( 'SBBT: module ' . $module['id'] . ' failed to load. ' . $e->getMessage() );
+				}
+			}
 		}
 	}
 }

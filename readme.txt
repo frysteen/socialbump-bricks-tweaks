@@ -4,7 +4,7 @@ Tags: bricks, acf
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -32,6 +32,14 @@ Extras:
 * Default To WP Editor: open the WordPress editor on posts with no Bricks content.
 
 == Changelog ==
+= 1.1.0 =
+* New: ACF Relationship condition, for relationship and post object fields
+* New: Updates and Publishing now have their own sub pages
+* New: the version in the header links to Updates and turns red when one is available
+* Plugin now declares its WordPress and PHP requirements, and ships an icon
+* Module card accent follows the admin colour scheme
+* A module that fails to load is skipped instead of breaking the site
+
 = 1.0.0 =
 * First full release.
 * Bricks element: SEO friendly Image Carousel built on Splide.

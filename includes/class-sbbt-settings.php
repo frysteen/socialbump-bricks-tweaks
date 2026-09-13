@@ -51,6 +51,26 @@ class SBBT_Settings {
 			[ $this, 'render' ]
 		);
 
+		add_submenu_page(
+			self::PAGE_SLUG,
+			esc_html__( 'Updates', 'sb-bricks-tweaks' ),
+			esc_html__( 'Updates', 'sb-bricks-tweaks' ),
+			'manage_options',
+			self::PAGE_SLUG . '-updates',
+			[ $this, 'render_updates_page' ]
+		);
+
+		if ( function_exists( 'sbbt_is_hub' ) && sbbt_is_hub() ) {
+			add_submenu_page(
+				self::PAGE_SLUG,
+				esc_html__( 'Publishing', 'sb-bricks-tweaks' ),
+				esc_html__( 'Publishing', 'sb-bricks-tweaks' ),
+				'manage_options',
+				self::PAGE_SLUG . '-publishing',
+				[ $this, 'render_publishing_page' ]
+			);
+		}
+
 		foreach ( SBBT_Modules::instance()->enabled() as $id => $module ) {
 			if ( empty( $module['admin_page']['title'] ) || empty( $module['admin_page']['render'] ) || ! is_callable( $module['admin_page']['render'] ) ) {
 				continue;
@@ -153,6 +173,16 @@ class SBBT_Settings {
 			<div class="sbbt-header__brand">
 				<img class="sbbt-header__logo" src="<?php echo esc_url( SBBT_URL . 'assets/img/socialbump-logo-light.svg' ); ?>" alt="SocialBUMP" width="203" height="28">
 				<h1 class="sbbt-header__title"><?php echo esc_html( $title ); ?></h1>
+				<?php
+				$state   = get_site_transient( 'update_plugins' );
+				$file    = plugin_basename( SBBT_FILE );
+				$pending = ( $state && ! empty( $state->response[ $file ]->new_version ) ) ? $state->response[ $file ]->new_version : '';
+				?>
+				<a class="sbbt-header__version<?php echo $pending ? ' is-outdated' : ''; ?>"
+					href="<?php echo esc_url( admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-updates' ) ); ?>"
+					title="<?php echo esc_attr( $pending ? sprintf( __( 'Version %s is available', 'sb-bricks-tweaks' ), $pending ) : __( 'Up to date', 'sb-bricks-tweaks' ) ); ?>">
+					v<?php echo esc_html( SBBT_VERSION ); ?><?php echo $pending ? ' &rarr; v' . esc_html( $pending ) : ''; ?>
+				</a>
 			</div>
 			<?php if ( $intro !== '' ) : ?>
 				<p class="sbbt-header__intro"><?php echo esc_html( $intro ); ?></p>
@@ -160,6 +190,26 @@ class SBBT_Settings {
 		</div>
 		<hr class="wp-header-end">
 		<?php
+	}
+
+	/**
+	 * Updates sub page: version, availability and a manual check.
+	 */
+	public function render_updates_page() {
+		echo '<div class="wrap sbbt-wrap">';
+		$this->render_header( __( 'Updates', 'sb-bricks-tweaks' ) );
+		SBBT_Updates::render();
+		echo '</div>';
+	}
+
+	/**
+	 * Publishing sub page. Only registered on the hub.
+	 */
+	public function render_publishing_page() {
+		echo '<div class="wrap sbbt-wrap">';
+		$this->render_header( __( 'Publishing', 'sb-bricks-tweaks' ) );
+		do_action( 'sbbt_settings_after' );
+		echo '</div>';
 	}
 
 	public static function module_page_slug( $id ) {
@@ -211,6 +261,9 @@ class SBBT_Settings {
 		$ver  = file_exists( $file ) ? SBBT_VERSION . '.' . filemtime( $file ) : SBBT_VERSION;
 
 		wp_enqueue_style( 'sbbt-admin', SBBT_URL . 'assets/css/admin.css', [], $ver );
+
+		// Match the card accent to the admin colour scheme the user has chosen.
+		wp_add_inline_style( 'sbbt-admin', ':root{--sbbt-accent:' . $this->accent_colour() . ';}' );
 
 		$js     = SBBT_PATH . 'assets/js/admin.js';
 		$js_ver = file_exists( $js ) ? SBBT_VERSION . '.' . filemtime( $js ) : SBBT_VERSION;
@@ -277,6 +330,70 @@ class SBBT_Settings {
 	 * Boxes on the settings page, in display order.
 	 * A module picks its box with 'section' in its module.php.
 	 */
+	/**
+	 * The current admin colour scheme's accent.
+	 *
+	 * WordPress does not expose this directly: each scheme registers four swatch
+	 * colours and the accent is not always in the same slot. The last two are the
+	 * candidates, so this takes the more saturated of them, which matches what the
+	 * scheme actually paints the current menu item with.
+	 */
+	/** How strongly coloured a hex value is, from 0 (grey) to 1. */
+	private static function saturation( $hex ) {
+		$raw = ltrim( (string) $hex, '#' );
+
+		if ( strlen( $raw ) === 3 ) {
+			$raw = $raw[0] . $raw[0] . $raw[1] . $raw[1] . $raw[2] . $raw[2];
+		}
+
+		if ( strlen( $raw ) !== 6 ) {
+			return 0;
+		}
+
+		$rgb = [ hexdec( substr( $raw, 0, 2 ) ), hexdec( substr( $raw, 2, 2 ) ), hexdec( substr( $raw, 4, 2 ) ) ];
+		$max = max( $rgb );
+
+		return $max > 0 ? ( $max - min( $rgb ) ) / $max : 0;
+	}
+	private function accent_colour() {
+		global $_wp_admin_css_colors;
+
+		$scheme = get_user_option( 'admin_color' );
+		$colors = ( $scheme && isset( $_wp_admin_css_colors[ $scheme ]->colors ) ) ? (array) $_wp_admin_css_colors[ $scheme ]->colors : [];
+		$colors = array_values(
+			array_filter(
+				$colors,
+				function ( $hex ) {
+					return (bool) sanitize_hex_color( $hex );
+				}
+			)
+		);
+
+		// A scheme with a strongly coloured focus colour is naming its accent directly.
+		if ( $scheme && ! empty( $_wp_admin_css_colors[ $scheme ]->icon_colors['focus'] ) ) {
+			$focus = sanitize_hex_color( $_wp_admin_css_colors[ $scheme ]->icon_colors['focus'] );
+
+			if ( $focus && self::saturation( $focus ) >= 0.6 ) {
+				return $focus;
+			}
+		}
+		if ( count( $colors ) < 2 ) {
+			return '#2271b1';
+		}
+
+		/**
+		 * A scheme registers its colours as base, secondary, highlight, notification.
+		 * The highlight is usually the accent, but some schemes (Midnight) paint the
+		 * current menu item with the notification colour instead. So take the
+		 * highlight unless the notification colour is clearly more vivid.
+		 */
+		$pair      = array_slice( $colors, -2 );
+		$highlight = $pair[0];
+		$notice    = $pair[1];
+
+		return self::saturation( $notice ) > self::saturation( $highlight ) + 0.15 ? $notice : $highlight;
+	}
+
 	public function sections() {
 		$sections = [
 			'elements'   => [
@@ -396,7 +513,6 @@ class SBBT_Settings {
 				</form>
 			<?php endif; ?>
 
-			<?php do_action( 'sbbt_settings_after' ); ?>
 		</div>
 		<?php
 	}

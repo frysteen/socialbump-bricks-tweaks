@@ -96,7 +96,7 @@ class SBBT_Release {
 			5 * MINUTE_IN_SECONDS
 		);
 
-		wp_safe_redirect( admin_url( 'admin.php?page=' . SBBT_Settings::PAGE_SLUG ) . '#sbbt-release' );
+		wp_safe_redirect( admin_url( 'admin.php?page=' . SBBT_Settings::PAGE_SLUG . '-publishing' ) );
 		exit;
 	}
 
@@ -664,10 +664,7 @@ class SBBT_Release {
 		}
 		?>
 		<div class="sbbt-release" id="sbbt-release">
-			<h2><?php esc_html_e( 'Publish release', 'sb-bricks-tweaks' ); ?></h2>
-			<p class="sbbt-intro">
-				<?php esc_html_e( 'This section only shows on the hub site. Publishing bumps the version, copies the plugin files into the GitHub repo and posts a release with the zip attached. Every other site then sees it as a normal plugin update, in WordPress and in MainWP.', 'sb-bricks-tweaks' ); ?>
-			</p>
+			<h2 class="screen-reader-text"><?php esc_html_e( 'Publish release', 'sb-bricks-tweaks' ); ?></h2>
 
 			<?php if ( is_array( $notice ) ) : ?>
 				<div class="notice notice-<?php echo $notice['type'] === 'success' ? 'success' : 'error'; ?> inline">

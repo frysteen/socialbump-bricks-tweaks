@@ -19,7 +19,7 @@
 }
 
 .sbbt-card.is-on {
-	border-left-color: #2271b1;
+	border-left-color: var(--sbbt-accent, #2271b1);
 }
 
 .sbbt-card__head {
@@ -69,7 +69,7 @@
 	display: flex;
 	flex-direction: column;
 	gap: 10px;
-	border-left-color: #2271b1;
+	border-left-color: var(--sbbt-accent, #2271b1);
 }
 
 .sbbt-release__card h3 {
@@ -357,4 +357,107 @@
 
 .sbbt-colour__value {
 	width: 220px;
+}
+
+/* Header version */
+.sbbt-header__version {
+	padding: 3px 9px;
+	background: rgba(255, 255, 255, 0.1);
+	border-radius: 999px;
+	color: #c3c4c7;
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: 0.02em;
+}
+
+/* Updates panel */
+.sbbt-updates__status {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 10px;
+	margin: 0 0 14px;
+}
+
+.sbbt-updates__badge {
+	padding: 3px 10px;
+	border-radius: 999px;
+	font-size: 12px;
+	font-weight: 600;
+}
+
+.sbbt-updates__badge.is-current {
+	background: #edfaef;
+	border: 1px solid #00a32a;
+	color: #00681f;
+}
+
+.sbbt-updates__badge.is-available {
+	background: #fcf3e6;
+	border: 1px solid #dba617;
+	color: #8a6116;
+}
+
+.sbbt-updates__meta {
+	color: #646970;
+	font-size: 13px;
+}
+
+.sbbt-updates__actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 12px;
+}
+
+.sbbt-updates__actions form {
+	margin: 0;
+}
+
+.sbbt-updates__link {
+	font-size: 13px;
+}
+
+/* Header version link */
+a.sbbt-header__version {
+	text-decoration: none;
+	transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+a.sbbt-header__version:hover,
+a.sbbt-header__version:focus {
+	background: rgba(255, 255, 255, 0.2);
+	color: #fff;
+}
+
+a.sbbt-header__version.is-outdated {
+	background: #4a0d0d;
+	color: #ff6b6b;
+}
+
+a.sbbt-header__version.is-outdated:hover,
+a.sbbt-header__version.is-outdated:focus {
+	background: #6b1414;
+	color: #ff8f8f;
+}
+
+/* Card fields never outgrow the card */
+.sbbt-card .sbbt-field input[type="text"],
+.sbbt-card .sbbt-field input[type="url"],
+.sbbt-card .sbbt-field input[type="number"],
+.sbbt-card .sbbt-field select,
+.sbbt-card .sbbt-field textarea {
+	width: 100%;
+	max-width: 100%;
+	box-sizing: border-box;
+}
+
+.sbbt-card .sbbt-colour {
+	display: flex;
+	max-width: 100%;
+}
+
+.sbbt-card .sbbt-colour__value {
+	flex: 1 1 auto;
+	min-width: 0;
 }

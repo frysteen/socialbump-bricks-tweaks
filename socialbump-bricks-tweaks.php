@@ -2,8 +2,10 @@
 /**
  * Plugin Name: SocialBUMP Bricks Tweaks
  * Plugin URI:  https://socialbump.com.au
- * Description: A home for SocialBUMP custom Bricks Builder elements and site tweaks. Turn each one on or off under Bricks > SB Tweaks.
- * Version:     1.0.0
+ * Description: A home for SocialBUMP custom Bricks Builder elements and site tweaks. Turn each one on or off under SB Bricks Tweaks.
+ * Version:     1.1.0
+ * Requires at least: 6.0
+ * Requires PHP: 7.4
  * Author:      SocialBUMP
  * Author URI:  https://socialbump.com.au
  * License:     GPL-2.0-or-later
@@ -14,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SBBT_VERSION', '1.0.0' );
+define( 'SBBT_VERSION', '1.1.0' );
 define( 'SBBT_FILE', __FILE__ );
 define( 'SBBT_PATH', plugin_dir_path( __FILE__ ) );
 define( 'SBBT_URL', plugin_dir_url( __FILE__ ) );
@@ -53,6 +55,27 @@ function sbbt_updater() {
 		 * updater supplies (FooEvents does this). Re-add the details callback later so
 		 * the View details screen still works on those sites.
 		 */
+		$GLOBALS['sbbt_update_checker'] = $checker;
+
+		/**
+		 * The plugin icon, for the updates list and the details popup. Plugins outside
+		 * the WordPress directory have none unless the update data supplies one.
+		 */
+		add_filter(
+			'puc_request_info_result-' . SBBT_SLUG,
+			function ( $info ) {
+				if ( is_object( $info ) ) {
+					$info->icons = [
+						'1x'      => SBBT_URL . 'assets/img/icon-128x128.png',
+						'2x'      => SBBT_URL . 'assets/img/icon-256x256.png',
+						'default' => SBBT_URL . 'assets/img/icon-256x256.png',
+					];
+				}
+
+				return $info;
+			}
+		);
+
 		remove_filter( 'plugins_api', [ $checker, 'injectInfo' ], 20 );
 		add_filter( 'plugins_api', [ $checker, 'injectInfo' ], 999, 3 );
 
@@ -114,6 +137,8 @@ function sbbt_boot() {
 
 	SBBT_Modules::instance()->boot();
 	SBBT_Settings::instance()->boot();
+	require_once SBBT_PATH . 'includes/class-sbbt-updates.php';
+	SBBT_Updates::boot();
 
 	if ( sbbt_is_hub() ) {
 		require_once SBBT_PATH . 'includes/class-sbbt-release.php';
