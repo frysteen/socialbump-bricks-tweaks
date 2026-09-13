@@ -4,7 +4,7 @@ Tags: bricks, acf
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.0
+Stable tag: 0.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -32,35 +32,10 @@ Extras:
 * Default To WP Editor: open the WordPress editor on posts with no Bricks content.
 
 == Changelog ==
-= 1.3.0 =
-* New: ACF Relationship Ordering, for sorting relationship and post object query loops
-
-= 1.2.2 =
-* Change: the Bricks Content options read as Built with Bricks and Not built with Bricks
-
-= 1.2.1 =
-* Fix: the Bricks Content value was an empty dropdown, so it had to be typed by hand
-* Change: the value now reads Set or Not set
-
-= 1.2.0 =
-* Change: the Bricks Content condition now reads as Is / Is not with a value, matching the built in conditions. Conditions saved in the old format keep working.
-
-= 1.1.0 =
-* New: ACF Relationship condition, for relationship and post object fields
-* New: Updates and Publishing now have their own sub pages
-* New: the version in the header links to Updates and turns red when one is available
-* Plugin now declares its WordPress and PHP requirements, and ships an icon
-* Module card accent follows the admin colour scheme
-* A module that fails to load is skipped instead of breaking the site
-
-= 1.0.0 =
-* First full release.
-* Bricks element: SEO friendly Image Carousel built on Splide.
-* Element conditions: ACF Repeater, Bricks Content and Post Type, each its own toggle.
-* ACF Gallery Loop: loop over a gallery in a query loop, with ordering.
-* ACF Repeater Ordering: reorder repeater rows in a loop without changing the saved data.
-* Fix ACF CPT SVG Icons, with an icon colour setting.
-* Default To WP Editor on posts with no Bricks content.
-* Own admin menu, grouped settings, per module settings and dependency checks.
-* Updates delivered from the hub through GitHub Releases.
+= 0.1.0 =
+* First numbered build while the plugin is still being put together.
+* Bricks elements: SEO friendly image carousel.
+* Conditions: ACF Relationship, ACF Repeater, Bricks Content, Post Type.
+* Extras: ACF Gallery Loop, ACF Loop Sorting, Default To WP Editor, Fix ACF CPT SVG Icons.
+* ACF features switch themselves off when ACF is only present as the copy bundled with Advanced Themer.
 

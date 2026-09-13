@@ -111,7 +111,10 @@ class SBBT_Settings {
 				esc_html( $label )
 			);
 		} else {
-			printf( '<label class="sbbt-field__label" for="%s">%s</label>', esc_attr( $field_id ), esc_html( $label ) );
+			if ( $type !== 'switch' ) {
+				printf( '<label class="sbbt-field__label" for="%s">%s</label>', esc_attr( $field_id ), esc_html( $label ) );
+			}
+
 
 			switch ( $type ) {
 				case 'color':
@@ -126,6 +129,16 @@ class SBBT_Settings {
 						esc_attr( $name ),
 						esc_attr( (string) $value ),
 						esc_attr( isset( $field['placeholder'] ) ? $field['placeholder'] : '' )
+					);
+					break;
+
+				case 'switch':
+					printf(
+						'<label class="sbbt-switch sbbt-switch--inline"><input type="checkbox" id="%1$s" name="%2$s" value="1" %3$s><span class="sbbt-switch__track"><span class="sbbt-switch__dot"></span></span><span class="sbbt-switch__label">%4$s</span></label>',
+						esc_attr( $field_id ),
+						esc_attr( $name ),
+						checked( ! empty( $value ), true, false ),
+						esc_html( $label )
 					);
 					break;
 
@@ -434,6 +447,11 @@ class SBBT_Settings {
 			);
 			?>
 
+			<?php
+			require_once SBBT_PATH . 'includes/class-sbbt-acf-source.php';
+			SBBT_Acf_Source::notice();
+			?>
+
 			<?php if ( isset( $_GET['updated'] ) ) : ?>
 				<div class="notice notice-success is-dismissible">
 					<p><?php esc_html_e( 'Settings saved.', 'sb-bricks-tweaks' ); ?></p>
@@ -477,6 +495,15 @@ class SBBT_Settings {
 											</label>
 										</div>
 
+										<?php if ( $missing ) : ?>
+											<p class="sbbt-card__needs">
+												<?php
+												/* translators: %s: plugin name(s) */
+												printf( esc_html__( 'Needs %s installed and active.', 'sb-bricks-tweaks' ), esc_html( implode( ' and ', $missing ) ) );
+												?>
+											</p>
+										<?php endif; ?>
+
 										<?php if ( $module['description'] ) : ?>
 											<p class="sbbt-card__desc"><?php echo esc_html( $module['description'] ); ?></p>
 										<?php endif; ?>
@@ -495,14 +522,6 @@ class SBBT_Settings {
 											<p class="sbbt-card__link"><a href="<?php echo esc_url( admin_url( 'admin.php?page=' . self::module_page_slug( $id ) ) ); ?>"><?php esc_html_e( 'Settings', 'sb-bricks-tweaks' ); ?></a></p>
 										<?php endif; ?>
 
-										<?php if ( $missing ) : ?>
-											<p class="sbbt-card__needs">
-												<?php
-												/* translators: %s: plugin name(s) */
-												printf( esc_html__( 'Needs %s installed and active.', 'sb-bricks-tweaks' ), esc_html( implode( ' and ', $missing ) ) );
-												?>
-											</p>
-										<?php endif; ?>
 									</div>
 								<?php endforeach; ?>
 							</div>

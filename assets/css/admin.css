@@ -461,3 +461,45 @@ a.sbbt-header__version.is-outdated:focus {
 	flex: 1 1 auto;
 	min-width: 0;
 }
+
+/* A switch used inside a card setting */
+.sbbt-switch--inline {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.sbbt-switch--inline + .sbbt-switch--inline {
+	margin-top: 10px;
+}
+
+.sbbt-switch__label {
+	font-size: 13px;
+}
+
+/**
+ * The real checkbox sits invisibly over the switch. WordPress styles a
+ * disabled checkbox with its own background and makes it partly visible,
+ * which showed as a grey box over the track, so the switch keeps its own
+ * appearance here whatever state it is in.
+ */
+.sbbt-switch input[type="checkbox"],
+.sbbt-switch input[type="checkbox"]:disabled,
+.sbbt-switch input[type="checkbox"]:checked,
+.sbbt-switch input[type="checkbox"]:focus {
+	-webkit-appearance: none;
+	appearance: none;
+	opacity: 0;
+	background: transparent;
+	border: 0;
+	border-radius: 999px;
+	box-shadow: none;
+	outline: 0;
+	min-width: 0;
+	min-height: 0;
+}
+
+.sbbt-switch input[type="checkbox"]:checked::before,
+.sbbt-switch input[type="checkbox"]::before {
+	content: none;
+}

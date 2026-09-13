@@ -176,6 +176,7 @@ class SBBT_Modules {
 
 				return $clean !== '' ? $clean : $default;
 
+			case 'switch':
 			case 'checkbox':
 				return empty( $value ) ? 0 : 1;
 
@@ -247,7 +248,18 @@ class SBBT_Modules {
 				'acf' => [
 					'label'  => 'Advanced Custom Fields',
 					'active' => function () {
-						return class_exists( 'ACF' );
+						if ( ! class_exists( 'ACF' ) ) {
+						return false;
+					}
+
+					/**
+					 * Advanced Themer bundles its own copy and loads it when the standalone
+					 * plugin is off. That copy hides the ACF menu and trails the current
+					 * release, so it does not count as ACF being available.
+					 */
+					require_once SBBT_PATH . 'includes/class-sbbt-acf-source.php';
+
+					return ! SBBT_Acf_Source::is_bundled();
 					},
 				],
 			]
