@@ -191,6 +191,15 @@ class SBBT_Release {
 
 		$original = file_get_contents( $file );
 		$updated  = preg_replace( '/^(Stable tag:\s*)\S+/m', '${1}' . $version, $original, 1 );
+
+		// Keep 'Tested up to' current so sites don't show the untested warning.
+		global $wp_version;
+		$wp    = explode( '.', preg_replace( '/[^0-9.].*$/', '', (string) $wp_version ) );
+		$short = isset( $wp[1] ) ? $wp[0] . '.' . $wp[1] : $wp[0];
+
+		if ( $short !== '' ) {
+			$updated = preg_replace( '/^(Tested up to:\s*)\S+/m', '${1}' . $short, $updated, 1 );
+		}
 		$eol      = chr( 10 );
 		$entry    = '= ' . $version . ' =' . $eol;
 		$lines    = 0;

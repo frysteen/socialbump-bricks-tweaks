@@ -2,9 +2,9 @@
 Contributors: socialbump
 Tags: bricks, acf
 Requires at least: 6.0
-Tested up to: 6.9
+Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.2.1
+Stable tag: 1.2.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -31,9 +31,10 @@ Extras:
 * Fix ACF CPT SVG Icons: make SVG menu icons on ACF post types behave like the other admin icons.
 * Default To WP Editor: open the WordPress editor on posts with no Bricks content.
 
-Updates are published from the hub site through GitHub Releases, so they appear in WordPress and MainWP like any other plugin update.
-
 == Changelog ==
+
+= 1.2.2 =
+* Fix: plugin details now show as tested with the current WordPress version
 
 = 1.2.1 =
 * Fix: View version details now works on sites where another plugin blocks the lookup
