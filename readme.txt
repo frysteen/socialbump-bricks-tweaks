@@ -4,7 +4,7 @@ Tags: bricks, acf
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.2.2
+Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -32,24 +32,14 @@ Extras:
 * Default To WP Editor: open the WordPress editor on posts with no Bricks content.
 
 == Changelog ==
+= 1.0.0 =
+* First full release.
+* Bricks element: SEO friendly Image Carousel built on Splide.
+* Element conditions: ACF Repeater, Bricks Content and Post Type, each its own toggle.
+* ACF Gallery Loop: loop over a gallery in a query loop, with ordering.
+* ACF Repeater Ordering: reorder repeater rows in a loop without changing the saved data.
+* Fix ACF CPT SVG Icons, with an icon colour setting.
+* Default To WP Editor on posts with no Bricks content.
+* Own admin menu, grouped settings, per module settings and dependency checks.
+* Updates delivered from the hub through GitHub Releases.
 
-= 1.2.2 =
-* Fix: plugin details now show as tested with the current WordPress version
-
-= 1.2.1 =
-* Fix: View version details now works on sites where another plugin blocks the lookup
-
-= 1.2.0 =
-* New: ACF Gallery Loop, loop over a gallery and control the markup yourself
-* New: ACF Repeater Ordering for query loops
-* New: element conditions split into three separate toggles
-* New: Post Type condition now accepts multiple post types
-* New: Fix ACF CPT SVG Icons, with an icon colour setting
-* New: Default To WP Editor on posts with no Bricks content
-* New: own admin menu, grouped settings and per module settings
-* Modules that need ACF grey out when it is not active
-* Internal names moved to the sbbt prefix
-* Added readme.txt so View version details works
-
-= 1.1.2 =
-* Current release.
