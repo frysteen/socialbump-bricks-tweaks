@@ -177,6 +177,50 @@ class SBBT_Release {
 		}
 	}
 
+	/**
+	 * Point readme.txt at the new version and add its notes to the changelog.
+	 * readme.txt is what fills the View version details screen on every site.
+	 * Returns the original contents so a failed publish can put it back.
+	 */
+	private function update_readme( $version, $notes ) {
+		$file = SBBT_PATH . 'readme.txt';
+
+		if ( ! is_readable( $file ) || ! is_writable( $file ) ) {
+			return null;
+		}
+
+		$original = file_get_contents( $file );
+		$updated  = preg_replace( '/^(Stable tag:\s*)\S+/m', '${1}' . $version, $original, 1 );
+		$eol      = chr( 10 );
+		$entry    = '= ' . $version . ' =' . $eol;
+		$lines    = 0;
+
+		foreach ( preg_split( '/\R/', (string) $notes ) as $line ) {
+			$line = trim( $line );
+
+			if ( $line === '' ) {
+				continue;
+			}
+
+			$entry .= '* ' . ltrim( $line, "-*" . chr( 9 ) . " " ) . $eol;
+			$lines++;
+		}
+
+		if ( ! $lines ) {
+			$entry .= '* Maintenance release.' . $eol;
+		}
+
+		if ( strpos( $updated, '== Changelog ==' ) !== false ) {
+			$updated = preg_replace( '/(== Changelog ==\s*\R+)/', '${1}' . str_replace( '$', '\$', $entry ) . $eol, $updated, 1 );
+		} else {
+			$updated .= $eol . '== Changelog ==' . $eol . $eol . $entry;
+		}
+
+		file_put_contents( $file, $updated );
+
+		return $original;
+	}
+
 	private function lint_ok( $file ) {
 		if ( ! function_exists( 'shell_exec' ) ) {
 			return true;
@@ -388,7 +432,11 @@ class SBBT_Release {
 		return $tag;
 	}
 
-	private function abort( $message, $original = null, $zip = '', $token = '', $release_id = 0 ) {
+	private function abort( $message, $original = null, $zip = '', $token = '', $release_id = 0, $readme_original = null ) {
+		if ( $readme_original !== null ) {
+			file_put_contents( SBBT_PATH . 'readme.txt', $readme_original );
+		}
+
 		if ( $release_id && $token ) {
 			$this->github( 'DELETE', '/repos/' . SBBT_GITHUB_REPO . '/releases/' . (int) $release_id, $token );
 		}
@@ -488,6 +536,8 @@ class SBBT_Release {
 
 		$this->write_main_file( $bumped );
 
+		$readme_original = $this->update_readme( $version, $notes );
+
 		if ( ! $this->lint_ok( SBBT_FILE ) ) {
 			$this->abort( __( 'The main plugin file failed a PHP syntax check after the version change.', 'sb-bricks-tweaks' ), $original );
 		}
@@ -504,7 +554,7 @@ class SBBT_Release {
 		$commit_sha = $this->push_code( $token, $branch, $version );
 
 		if ( is_wp_error( $commit_sha ) ) {
-			$this->abort( $commit_sha->get_error_message(), $original, $zip );
+			$this->abort( $commit_sha->get_error_message(), $original, $zip, '', 0, $readme_original );
 		}
 
 		// 4. Create a draft release on that commit, attach the zip, then publish it.
@@ -524,7 +574,7 @@ class SBBT_Release {
 
 		if ( $release['code'] !== 201 || empty( $release['body']['id'] ) ) {
 			/* translators: %s: GitHub error message */
-			$this->abort( sprintf( __( 'GitHub would not create the release (%s). Check the token has Contents set to Read and write.', 'sb-bricks-tweaks' ), $release['error'] ), $original, $zip );
+			$this->abort( sprintf( __( 'GitHub would not create the release (%s). Check the token has Contents set to Read and write.', 'sb-bricks-tweaks' ), $release['error'] ), $original, $zip, '', 0, $readme_original );
 		}
 
 		$release_id = (int) $release['body']['id'];
@@ -533,7 +583,7 @@ class SBBT_Release {
 
 		if ( $upload['code'] !== 201 ) {
 			/* translators: %s: GitHub error message */
-			$this->abort( sprintf( __( 'The zip upload to GitHub failed (%s).', 'sb-bricks-tweaks' ), $upload['error'] ), $original, $zip, $token, $release_id );
+			$this->abort( sprintf( __( 'The zip upload to GitHub failed (%s).', 'sb-bricks-tweaks' ), $upload['error'] ), $original, $zip, $token, $release_id, $readme_original );
 		}
 
 		$live = $this->github(
@@ -548,7 +598,7 @@ class SBBT_Release {
 
 		if ( $live['code'] !== 200 ) {
 			/* translators: %s: GitHub error message */
-			$this->abort( sprintf( __( 'GitHub would not publish the release (%s).', 'sb-bricks-tweaks' ), $live['error'] ), $original, $zip, $token, $release_id );
+			$this->abort( sprintf( __( 'GitHub would not publish the release (%s).', 'sb-bricks-tweaks' ), $live['error'] ), $original, $zip, $token, $release_id, $readme_original );
 		}
 
 		wp_delete_file( $zip );
