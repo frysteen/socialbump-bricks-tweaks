@@ -217,6 +217,7 @@ class SBBT_Settings {
 		echo '<div class="wrap sbbt-wrap">';
 		$this->render_header( __( 'Updates', 'sb-bricks-tweaks' ) );
 		SBBT_Updates::render();
+		SBBT_Transfer::render();
 		echo '</div>';
 	}
 
