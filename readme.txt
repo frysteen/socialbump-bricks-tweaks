@@ -4,7 +4,7 @@ Tags: bricks, acf
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.1.7
+Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -32,6 +32,15 @@ Extras:
 * Default To WP Editor: open the WordPress editor on posts with no Bricks content.
 
 == Changelog ==
+= 1.0.0 =
+* Admin bar item is now shared: with more than one SocialBUMP plugin active they sit together under a single SocialBUMP menu, each with its own pages.
+* Save buttons stay greyed out until something is actually changed, with a reminder that follows you down the page while changes are unsaved.
+* Unsaved changes now also warn before you leave the page with something unsaved.
+* Save buttons look the same in every SocialBUMP plugin: a plain grey outline when there is nothing to save, amber when there is.
+* Page headings now read the plugin name followed by the page you are on.
+* The plugin now carries its own notes at docs/context.md, and they can be read and edited on the Publishing page.
+* The plugin notes now describe every module and condition in detail, including how it works and what it can be set to.
+
 = 0.1.7 =
 * Exported settings file name reads properly for the site it came from.
 

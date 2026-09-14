@@ -25,8 +25,6 @@ class SBBT_Settings {
 		add_action( 'admin_post_sbbt_save', [ $this, 'save' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'styles' ] );
 		add_action( 'admin_bar_menu', [ $this, 'admin_bar' ], 100 );
-		add_action( 'admin_head', [ $this, 'bar_styles' ] );
-		add_action( 'wp_head', [ $this, 'bar_styles' ] );
 	}
 
 	/**
@@ -190,7 +188,12 @@ class SBBT_Settings {
 				<a class="sbbt-header__home" href="<?php echo esc_url( admin_url( 'admin.php?page=' . self::PAGE_SLUG ) ); ?>">
 					<img class="sbbt-header__logo" src="<?php echo esc_url( SBBT_URL . 'assets/img/socialbump-logo-light.svg' ); ?>" alt="SocialBUMP" width="203" height="28">
 				</a>
-				<h1 class="sbbt-header__title"><?php echo esc_html( $title ); ?></h1>
+				<h1 class="sbbt-header__title">
+					<?php echo esc_html__( 'Bricks Tweaks', 'sb-bricks-tweaks' ); ?>
+					<?php if ( $title !== 'Bricks Tweaks' ) : ?>
+						<span class="sbbt-header__page"><?php echo esc_html( $title ); ?></span>
+					<?php endif; ?>
+				</h1>
 				<?php
 				$state   = get_site_transient( 'update_plugins' );
 				$file    = plugin_basename( SBBT_FILE );
@@ -234,8 +237,15 @@ class SBBT_Settings {
 	/**
 	 * A shortcut in the admin bar, listing the same sub pages as the menu.
 	 */
+	/**
+	 * Hand our pages to the shared SocialBUMP menu in the admin bar.
+	 *
+	 * On its own the plugin sits on the bar as before. Alongside the other
+	 * SocialBUMP plugins they share one item, and an update waiting here shows
+	 * as an amber dot on it.
+	 */
 	public function admin_bar( $bar ) {
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( 'manage_options' ) || ! class_exists( 'SocialBUMP_Admin_Bar' ) ) {
 			return;
 		}
 
@@ -245,45 +255,33 @@ class SBBT_Settings {
 		$page    = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
 		$current = isset( $items[ $page ] ) ? $page : '';
 
-		$bar->add_node(
-			[
-				'id'    => 'sbbt',
-				'title' => esc_html__( 'SB Bricks Tweaks', 'sb-bricks-tweaks' ),
-				'href'  => admin_url( 'admin.php?page=' . self::PAGE_SLUG ),
-				'meta'  => [ 'class' => $current !== '' ? 'sb-bar-current' : '' ],
-			]
-		);
+		$state   = get_site_transient( 'update_plugins' );
+		$file    = plugin_basename( SBBT_FILE );
+		$pending = ( $state && ! empty( $state->response[ $file ]->new_version ) ) ? $state->response[ $file ]->new_version : '';
+
+		$pages = [];
 
 		foreach ( $items as $slug => $title ) {
-			$bar->add_node(
-				[
-					'id'     => 'sbbt-bar-' . sanitize_key( $slug ),
-					'parent' => 'sbbt',
-					'title'  => esc_html( $title ),
-					'href'   => admin_url( 'admin.php?page=' . $slug ),
-					'meta'   => [ 'class' => $slug === $current ? 'sb-bar-current' : '' ],
-				]
-			);
-		}
-	}
-
-	/**
-	 * Marks the page you are on in the admin bar shortcut.
-	 *
-	 * Printed rather than enqueued, because the bar also shows on the front end
-	 * where the plugin admin stylesheet is not loaded.
-	 */
-	public function bar_styles() {
-		if ( ! is_admin_bar_showing() || ! current_user_can( 'manage_options' ) ) {
-			return;
+			$pages[] = [
+				'title'   => $title,
+				'href'    => admin_url( 'admin.php?page=' . $slug ),
+				'current' => $slug === $current,
+			];
 		}
 
-		// The accent from whichever admin colour scheme the user has chosen.
-		$accent = $this->accent_colour();
-
-		echo '<style>#wpadminbar .sb-bar-current > .ab-item{color:' . esc_attr( $accent ) . ';font-weight:600;}</style>';
+		SocialBUMP_Admin_Bar::register(
+			[
+				'id'              => 'bricks-tweaks',
+				'label'           => __( 'Bricks Tweaks', 'sb-bricks-tweaks' ),
+				'href'            => admin_url( 'admin.php?page=' . self::PAGE_SLUG ),
+				'items'           => $pages,
+				'attention'       => $pending !== '',
+				/* translators: %s: version number */
+				'attention_title' => $pending !== '' ? sprintf( __( 'Version %s is available', 'sb-bricks-tweaks' ), $pending ) : '',
+				'current'         => $current !== '',
+			]
+		);
 	}
-
 	/** The pages the admin bar shortcut lists, in menu order. */
 	private function bar_items() {
 		$items = [ self::PAGE_SLUG => __( 'Features', 'sb-bricks-tweaks' ) ];
@@ -353,6 +351,13 @@ class SBBT_Settings {
 		$ver  = file_exists( $file ) ? SBBT_VERSION . '.' . filemtime( $file ) : SBBT_VERSION;
 
 		wp_enqueue_style( 'sbbt-admin', SBBT_URL . 'assets/css/admin.css', [], $ver );
+
+		// Tells you when there is something to save, and when there is not.
+		$dirty = SBBT_PATH . 'assets/js/save-state.js';
+
+		if ( file_exists( $dirty ) ) {
+			wp_enqueue_script( 'sb-save-state', SBBT_URL . 'assets/js/save-state.js', [], SBBT_VERSION . '.' . filemtime( $dirty ), true );
+		}
 
 		// Match the card accent to the admin colour scheme the user has chosen.
 		wp_add_inline_style( 'sbbt-admin', ':root{--sbbt-accent:' . $this->accent_colour() . ';}' );
@@ -521,7 +526,7 @@ class SBBT_Settings {
 		<div class="wrap sbbt-wrap">
 			<?php
 			$this->render_header(
-				__( 'Bricks Tweaks', 'sb-bricks-tweaks' ),
+				__( 'Features', 'sb-bricks-tweaks' ),
 				__( 'Switch each feature on or off. Anything switched off is not loaded at all, so it adds nothing to the site.', 'sb-bricks-tweaks' )
 			);
 			?>
@@ -540,7 +545,7 @@ class SBBT_Settings {
 			<?php if ( empty( $modules ) ) : ?>
 				<p><?php esc_html_e( 'No modules found yet.', 'sb-bricks-tweaks' ); ?></p>
 			<?php else : ?>
-				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+				<form method="post" data-sb-dirty action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 					<input type="hidden" name="action" value="sbbt_save">
 					<?php wp_nonce_field( 'sbbt_save' ); ?>
 
