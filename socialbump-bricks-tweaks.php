@@ -3,7 +3,7 @@
  * Plugin Name: SocialBUMP Bricks Tweaks
  * Plugin URI:  https://socialbump.com.au
  * Description: A home for SocialBUMP custom Bricks Builder elements and site tweaks. Turn each one on or off under SB Bricks Tweaks.
- * Version:     1.0.0
+ * Version:     1.0.1
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Author:      SocialBUMP
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SBBT_VERSION', '1.0.0' );
+define( 'SBBT_VERSION', '1.0.1' );
 define( 'SBBT_FILE', __FILE__ );
 define( 'SBBT_PATH', plugin_dir_path( __FILE__ ) );
 define( 'SBBT_URL', plugin_dir_url( __FILE__ ) );
@@ -158,6 +158,7 @@ function sbbt_boot() {
 
 	require_once SBBT_PATH . 'includes/class-sbbt-modules.php';
 	require_once SBBT_PATH . 'includes/class-socialbump-admin-bar.php';
+require_once SBBT_PATH . 'includes/class-socialbump-overview.php';
 	require_once SBBT_PATH . 'includes/class-sbbt-settings.php';
 
 	SBBT_Modules::instance()->boot();
@@ -196,3 +197,61 @@ function sbbt_action_links( $links ) {
 	return $links;
 }
 add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), 'sbbt_action_links' );
+
+/**
+ * Make sure the new files are the ones that run.
+ *
+ * Updating a plugin swaps its files out mid request. If you were on one of its
+ * own pages at the time, the page you land on afterwards can still be running
+ * the old code, or code caught halfway through being replaced, so its menus
+ * never register and the plugin appears to vanish until you go somewhere else.
+ *
+ * Clearing the compiled copies as soon as the update finishes means the next
+ * request reads what is actually on disk.
+ */
+function sbbt_forget_compiled( $upgrader, $extra ) {
+	if ( ! function_exists( 'opcache_invalidate' ) ) {
+		return;
+	}
+
+	$ours = plugin_basename( SBBT_FILE );
+	$mine = isset( $extra['plugins'] ) && in_array( $ours, (array) $extra['plugins'], true );
+
+	// A single update reports the plugin on its own rather than in a list.
+	if ( ! $mine && isset( $extra['plugin'] ) && $extra['plugin'] === $ours ) {
+		$mine = true;
+	}
+
+	if ( ! $mine ) {
+		return;
+	}
+
+	$files = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( SBBT_PATH, FilesystemIterator::SKIP_DOTS ) );
+
+	foreach ( $files as $file ) {
+		if ( $file->getExtension() === 'php' ) {
+			@opcache_invalidate( $file->getPathname(), true );
+		}
+	}
+}
+add_action( 'upgrader_process_complete', 'sbbt_forget_compiled', 10, 2 );
+
+/**
+ * Nothing about publishing belongs on a site that is not the hub.
+ *
+ * This site is the blueprint new sites are built from, so whatever sits in its
+ * database travels with every copy. A GitHub token has no business on a client
+ * site, and the release notes waiting to be published are only noise there.
+ */
+function sbbt_tidy_away_hub_data() {
+	if ( sbbt_is_hub() ) {
+		return;
+	}
+
+	foreach ( [ 'sbbt_github_token', 'sbbt_pending_changes', 'sbbt_latest_release' ] as $option ) {
+		if ( get_option( $option ) !== false ) {
+			delete_option( $option );
+		}
+	}
+}
+add_action( 'admin_init', 'sbbt_tidy_away_hub_data' );
