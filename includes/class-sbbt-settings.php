@@ -184,6 +184,47 @@ class SBBT_Settings {
 	 * Dark SocialBUMP banner at the top of every SB Bricks Tweaks page.
 	 * The hr after it tells WordPress to put admin notices below the banner, not inside it.
 	 */
+	/**
+	 * The plugin pages, along the bottom of the banner.
+	 *
+	 * The menu lists them already, but on a long admin menu the plugin can be a
+	 * scroll away, and its pages only show while you are on one of them. This
+	 * keeps them to hand wherever you are.
+	 *
+	 * Updates says so when a new version is waiting, and Publishing says how many
+	 * changes are queued, so neither has to be opened to find out.
+	 */
+	private function render_nav() {
+		$items = $this->bar_items();
+
+		if ( count( $items ) < 2 ) {
+			return;
+		}
+
+		$page    = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
+		$state   = get_site_transient( 'update_plugins' );
+		$file    = plugin_basename( SBBT_FILE );
+		$waiting = ( $state && ! empty( $state->response[ $file ]->new_version ) ) ? $state->response[ $file ]->new_version : '';
+		$notes   = count( (array) get_option( 'sbbt_pending_changes', [] ) );
+
+		echo '<nav class="sbbt-header__nav">';
+
+		foreach ( $items as $slug => $title ) {
+			$badge = '';
+
+			if ( $slug === self::PAGE_SLUG . '-updates' && $waiting !== '' ) {
+				$badge = '<span class="sbbt-header__badge">v' . esc_html( $waiting ) . '</span>';
+			}
+
+			if ( $slug === self::PAGE_SLUG . '-publishing' && $notes > 0 ) {
+				$badge = '<span class="sbbt-header__badge">' . esc_html( number_format_i18n( $notes ) ) . '</span>';
+			}
+
+			echo '<a class="sbbt-header__link' . ( $slug === $page ? ' is-current' : '' ) . '" href="' . esc_url( admin_url( 'admin.php?page=' . $slug ) ) . '">' . esc_html( $title ) . $badge . '</a>';
+		}
+
+		echo '</nav>';
+	}
 	private function render_header( $title, $intro = '' ) {
 		?>
 		<div class="sbbt-header">
@@ -211,6 +252,7 @@ class SBBT_Settings {
 			<?php if ( $intro !== '' ) : ?>
 				<p class="sbbt-header__intro"><?php echo esc_html( $intro ); ?></p>
 			<?php endif; ?>
+			<?php $this->render_nav(); ?>
 		</div>
 		<hr class="wp-header-end">
 		<?php
@@ -221,7 +263,7 @@ class SBBT_Settings {
 	 */
 	public function render_updates_page() {
 		echo '<div class="wrap sbbt-wrap">';
-		$this->render_header( __( 'Updates', 'sb-bricks-tweaks' ) );
+		$this->render_header( __( 'Updates', 'sb-bricks-tweaks' ), __( 'Where this plugin gets its updates, and the settings you can carry across to another site.', 'sb-bricks-tweaks' ) );
 		SBBT_Updates::render();
 		SBBT_Transfer::render();
 		echo '</div>';
@@ -232,7 +274,7 @@ class SBBT_Settings {
 	 */
 	public function render_publishing_page() {
 		echo '<div class="wrap sbbt-wrap">';
-		$this->render_header( __( 'Publishing', 'sb-bricks-tweaks' ) );
+		$this->render_header( __( 'Publishing', 'sb-bricks-tweaks' ), __( 'Push a new version to GitHub, from here on the hub. Sites pick it up as a normal plugin update.', 'sb-bricks-tweaks' ) );
 		do_action( 'sbbt_settings_after' );
 		echo '</div>';
 	}
