@@ -283,6 +283,11 @@ admin bar: first to load defines the class, the others register with it.
   as the heading inside the panel, so all of them go out from one screen.
 - The item in the admin bar opens this page when it exists, and the first
   plugin otherwise.
+- Between the cards and the publishing panels sits a master prompt for starting a
+  chat that could touch more than one plugin. It builds itself from whatever is
+  registered, so a fourth plugin would appear in it without being told, and it
+  covers what the per plugin prompts cannot: that shared code lands everywhere,
+  and that the shared block of the notes must stay identical in every copy.
 
 register() takes id, name, version, file and pages, and optionally notes, css,
 css_time, logo, accent_var, hub, and release, a callback that draws that plugin
@@ -307,6 +312,14 @@ menus never register and the plugin appears to have vanished until you navigate
 somewhere else. Each plugin now clears the compiled copies of its own files on
 upgrader_process_complete, which settles it.
 
+The Update now button on each Updates page goes through update-core.php, the
+bulk path the dashboard uses: maintenance mode on, files swapped, maintenance
+mode off, plugin never deactivated. It used to go through update.php, the
+single plugin path, which deactivates the plugin first and reactivates it
+silently in the same request. When that silent step failed the plugin was left
+switched off with nothing in any log, which is exactly what happened on a
+client site. Keep the bulk path.
+
 ### What a client site must not carry
 
 The hub is the blueprint new sites are built from, so whatever is in its database
@@ -328,8 +341,16 @@ Attributes a button can carry:
 - data-sb-label-dirty: the wording to use when there is something to save, for a
   button whose resting label says there is nothing.
 - data-sb-always-on: never disable this one. Used for buttons that do work
-  rather than save, such as Full Rebuild.
+  rather than save, such as Full Rebuild, and for any submit that is an action
+  rather than a save, such as Reset to defaults.
 - data-sb-idle=1: nothing to run right now, so sit inactive until there is.
+
+The reminder saves with the button that actually saves: one marked data-sb-save,
+then the primary button, and only then the first submit in the form. A form can
+hold more than one submit and not all of them save. The image sizes form has
+Reset to defaults sitting above Save changes, and the reminder used to submit
+whichever came first, so clicking it reset the sizes rather than saving them.
+Worth remembering when adding any second submit to a form.
 
 Styling: .sb-save--clean is a grey outline on transparent, .sb-save--dirty is
 pale yellow with an amber border, matching the reminder. Both selectors lead with
@@ -378,6 +399,10 @@ code and shows a Publishing page.
 - The notes box fills from prefix_log_change() calls made since the last release,
   and the list empties once a release goes out. Call it after any change worth
   telling someone about, in their words rather than yours.
+- Only log what a client site would notice. The Hub page, the Publishing page and
+  anything else that exists only on the hub never reach a client site, so a change
+  to them earns no note and no release of its own. It rides along with the next
+  real one. A release exists to tell other sites something changed for them.
 - Publishing retries on a 5xx, checks the zip actually attached, and checks again
   before undoing anything, because GitHub has published a release and then failed
   the response.
@@ -497,5 +522,11 @@ folder, and anything not carried back to the hub is gone.
   to the right of the whole menu.
 - The admin menu can be renamed by an admin menu plugin. Admin and Site
   Enhancements holds its own titles and wins over whatever the plugin registers.
+- opcache_invalidate() only reaches the PHP process it runs in. On a LiteSpeed
+  host with opcache.revalidate_freq set to 60, every other process keeps running
+  the old file for up to a minute after a write. A rebuild started in that
+  window ran half on old code and half on new, and stamped the cache both ways.
+  A fresh request is not proof until a minute has passed, and nothing that
+  writes stamps or data formats should be exercised in that minute.
 
 <!-- shared:end -->
