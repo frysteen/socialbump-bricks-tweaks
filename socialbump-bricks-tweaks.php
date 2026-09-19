@@ -3,7 +3,7 @@
  * Plugin Name: SocialBUMP Bricks Tweaks
  * Plugin URI:  https://socialbump.com.au
  * Description: A home for SocialBUMP custom Bricks Builder elements and site tweaks. Turn each one on or off under SB Bricks Tweaks.
- * Version:     1.0.3
+ * Version:     1.0.4
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Author:      SocialBUMP
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SBBT_VERSION', '1.0.3' );
+define( 'SBBT_VERSION', '1.0.4' );
 define( 'SBBT_FILE', __FILE__ );
 define( 'SBBT_PATH', plugin_dir_path( __FILE__ ) );
 define( 'SBBT_URL', plugin_dir_url( __FILE__ ) );
@@ -157,7 +157,14 @@ function sbbt_boot() {
 	}
 
 	require_once SBBT_PATH . 'includes/class-sbbt-modules.php';
-	require_once SBBT_PATH . 'includes/class-socialbump-admin-bar.php';
+// Shared with the other SocialBUMP plugins, so whichever loads first provides
+// it. Checked here as well as inside the file: an opcache entry compiled before
+// that guard existed took the site down once.
+if ( ! class_exists( 'SocialBUMP_Cards' ) ) {
+	require_once SBBT_PATH . 'includes/class-socialbump-cards.php';
+}
+
+require_once SBBT_PATH . 'includes/class-socialbump-admin-bar.php';
 require_once SBBT_PATH . 'includes/class-socialbump-overview.php';
 	require_once SBBT_PATH . 'includes/class-sbbt-settings.php';
 

@@ -572,6 +572,12 @@ class SBBT_Release {
 
 		$token   = $this->get_token();
 		$version = isset( $_POST['sbbt_version'] ) ? trim( sanitize_text_field( wp_unslash( $_POST['sbbt_version'] ) ) ) : '';
+
+		// 1.1 means 1.1.0. Padded here as well as in the browser, so the short
+		// form works however the form was submitted.
+		if ( preg_match( '/^[0-9]+(\.[0-9]+)?$/', $version ) ) {
+			$version = implode( '.', array_slice( array_pad( explode( '.', $version ), 3, '0' ), 0, 3 ) );
+		}
 		$notes   = isset( $_POST['sbbt_notes'] ) ? trim( sanitize_textarea_field( wp_unslash( $_POST['sbbt_notes'] ) ) ) : '';
 		$current = $this->file_version();
 
@@ -795,6 +801,40 @@ class SBBT_Release {
 						<?php wp_nonce_field( 'sbbt_publish' ); ?>
 						<label for="sbbt_version"><?php esc_html_e( 'New version number', 'sb-bricks-tweaks' ); ?></label>
 						<input type="text" id="sbbt_version" name="sbbt_version" value="<?php echo esc_attr( $suggest ); ?>" pattern="\d+\.\d+\.\d+" required>
+						<?php
+						/**
+						 * 1.1 and 1 are what you type; x.y.z is what a release needs. The
+						 * missing parts are filled in when you leave the field, rather than
+						 * the browser refusing the form over a pattern it does not explain.
+						 * The same padding runs on save, so a form that never lost focus
+						 * cannot slip through either.
+						 */
+						?>
+						<script>
+						( function () {
+							var box = document.getElementById( 'sbbt_version' );
+
+							if ( ! box ) {
+								return;
+							}
+
+							box.addEventListener( 'blur', function () {
+								var value = box.value.trim();
+
+								if ( ! /^[0-9]+(\.[0-9]+)*$/.test( value ) ) {
+									return;
+								}
+
+								var parts = value.split( '.' );
+
+								while ( parts.length < 3 ) {
+									parts.push( '0' );
+								}
+
+								box.value = parts.slice( 0, 3 ).join( '.' );
+							} );
+						} )();
+						</script>
 						<label for="sbbt_notes"><?php esc_html_e( 'What changed (optional)', 'sb-bricks-tweaks' ); ?></label>
 						<textarea id="sbbt_notes" name="sbbt_notes" rows="<?php echo esc_attr( max( 4, min( 12, count( $changes ) + 1 ) ) ); ?>"><?php echo esc_textarea( self::changes_text() ); ?></textarea>
 						<?php if ( $changes ) : ?>

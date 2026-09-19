@@ -4,7 +4,7 @@ Tags: bricks, acf
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.0.3
+Stable tag: 1.0.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -32,6 +32,11 @@ Extras:
 * Default To WP Editor: open the WordPress editor on posts with no Bricks content.
 
 == Changelog ==
+= 1.0.4 =
+* New Modules page, the same one Site Kit has. Each group of features sits on a card you can switch on or off, collapse to its title, and drag into the order you want.
+* Each group now has a page of its own: Bricks Elements, Conditional Logic and Extras. The menu, the tabs across the top and the admin bar all follow the order you set, and a group that is switched off drops out of all three.
+* Saving on a group page now leaves you on that page instead of returning you to the list.
+
 = 1.0.3 =
 * The Update now button on the Updates page now runs the update the same way the WordPress dashboard does, under maintenance mode, instead of deactivating and reactivating the plugin. The old way could leave the plugin switched off after an update.
 

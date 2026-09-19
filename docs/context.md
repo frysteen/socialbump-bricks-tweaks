@@ -230,6 +230,52 @@ Change one, change all three, then check the md5s match. Both are written so
 that whichever plugin loads first wins and the others stand aside, so a site
 running mixed versions still works.
 
+### The Modules page cards
+
+SocialBUMP_Cards and module-cards.js give a page of cards a chevron to collapse
+each to its title (the title toggles too), Collapse all, Expand all and Collapse
+disabled links above the grid, and a Reorder Cards button below it that opens a
+list to drag. Order and collapsed state are per user, in user meta, alphabetical
+until changed, and saved over AJAX as they change, never through the form. The
+saved order is meant to drive the menu, the tab bar and the admin bar as well,
+and saving one drops that menu's entry from ASE's submenu order. Both files are
+identical wherever they exist.
+
+Putting the page into a plugin takes five things, and it is broken in a quiet
+way if any one is missed. Porting it to Bricks Tweaks missed three of them and
+the page looked wrong rather than dead, which cost an hour:
+
+1. Copy class-socialbump-cards.php and module-cards.js in. The class guards
+   itself with class_exists, but require it behind class_exists as well: an
+   opcache entry compiled before that guard existed took a site down.
+2. Call register( prefix, menu slug ) at boot. Without it the AJAX endpoint
+   never exists, so the arrangement cannot save.
+3. Enqueue module-cards.js on the settings pages, handle sb-module-cards.
+   Without it nothing collapses or drags at all.
+4. Mark up the grid: container_attributes() on it, card_attribute() on each
+   card, toolbar() twice, links above and reorder below. A card's first child
+   must be its head, and the toolbar key must match the grid's.
+5. Copy the CSS. This is the part that hides: the rules are NOT all generic
+   .sb- classes in one chunk. Three of them are attribute selectors that a
+   search for .sb- will not find, and every one of them matters:
+
+       [data-sb-cards] { align-items: start; }
+       [data-sb-card] > :first-child > h3 { flex: 1; }
+       [data-sb-card].is-collapsed > :not(:first-child) { display: none; }
+
+   Without the first, cards stretch to the tallest in the row. Without the
+   second, the title does not take the space and the chevron and switch sit
+   wrong. Without the third, collapsing works and looks like nothing happened.
+   The prefixed card rules are needed too: card, card__head, card__desc,
+   card__link, switch, features and dot.
+
+To check a port, render the page, pull every class out of the markup and look
+each one up in that plugin's stylesheet. That catches the prefixed ones. Then
+check the three attribute selectors above by name, because they never appear in
+the markup: is-collapsed is added by the JS, and the other two are on elements
+whose classes are already there. Eyeballing the page does not catch any of this,
+because a missing rule looks like a layout opinion rather than a fault.
+
 ### The shared admin bar item
 
 SocialBUMP_Admin_Bar::register() takes id, label, href and items, and optionally
@@ -315,10 +361,12 @@ upgrader_process_complete, which settles it.
 The Update now button on each Updates page goes through update-core.php, the
 bulk path the dashboard uses: maintenance mode on, files swapped, maintenance
 mode off, plugin never deactivated. It used to go through update.php, the
-single plugin path, which deactivates the plugin first and reactivates it
-silently in the same request. When that silent step failed the plugin was left
-switched off with nothing in any log, which is exactly what happened on a
-client site. Keep the bulk path.
+single plugin path, which deactivates the plugin first and does not reactivate
+it in PHP at all: the results page carries a hidden iframe that loads
+update.php?action=activate-plugin, and that iframe is the reactivation. Leave
+the page before it loads, or have anything block it, and the plugin stays off
+with nothing in any log. That happened twice on a client site. Keep the bulk
+path.
 
 ### What a client site must not carry
 
@@ -408,6 +456,9 @@ code and shows a Publishing page.
   the response.
 - The first release may carry the version already in the files. Every release
   after that has to be higher than the last.
+- A version needs all three parts, so 1.1 is padded to 1.1.0 when you leave the
+  field, and again on save in case the form never lost focus. Typing 1.1 used
+  to get you the browser complaining about a pattern it does not explain.
 - Everything in the plugin folder is published except .git, .github, node_modules
   and .DS_Store. These docs ship with the plugin, so they reach every site, and
   the repos are public: nothing private goes in them.
@@ -458,6 +509,8 @@ Every plugin has the same shape:
 | includes/class-<pre>-transfer.php | settings export and import |
 | includes/class-<pre>-docs.php | these notes, and the panel on Publishing |
 | includes/class-socialbump-admin-bar.php | shared, identical in all three |
+| includes/class-socialbump-cards.php | shared: collapsible, reorderable cards. Site Kit has it; the others get it with their Modules pages |
+| assets/js/module-cards.js | shared, goes with the cards class |
 | assets/css/admin.css | everything the admin pages look like |
 | assets/js/save-state.js | shared, identical in all three |
 | vendor/plugin-update-checker | the updater library, left alone |

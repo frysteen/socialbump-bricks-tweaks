@@ -34,6 +34,8 @@ class SBBT_Modules {
 	/** Where card settings are saved, keyed by module id. */
 	const SETTINGS_OPTION = 'sbbt_module_settings';
 
+	const GROUPS_OPTION = 'sbbt_groups';
+
 	/** All discovered modules, keyed by id. */
 	private $modules = [];
 
@@ -94,6 +96,9 @@ class SBBT_Modules {
 					'section'     => '',
 					'requires'    => [],
 					'admin_page'  => null,
+					'unavailable' => null,
+					'always'      => false,
+					'features'    => null,
 					'settings'    => [],
 					'path'        => trailingslashit( $dir ),
 					'url'         => trailingslashit( SBBT_URL . 'includes/modules/' . basename( $dir ) ),
@@ -139,9 +144,84 @@ class SBBT_Modules {
 	}
 
 	public function is_enabled( $id ) {
+		if ( ! isset( $this->modules[ $id ] ) || ! $this->group_enabled( $this->modules[ $id ]['section'] ) ) {
+			return false;
+		}
+
 		$states = $this->get_states();
 
 		return ! empty( $states[ $id ] ) && ! $this->missing( $id );
+	}
+
+	/**
+	 * Which groups are switched on.
+	 *
+	 * A group is on until it is switched off, unless its section says otherwise,
+	 * and a group whose every module is missing what it needs is off and cannot
+	 * be turned on.
+	 */
+	public function group_states() {
+		$saved  = (array) get_option( self::GROUPS_OPTION, [] );
+		$states = [];
+
+		foreach ( SBBT_Settings::instance()->sections() as $group => $section ) {
+			$default = ! ( isset( $section['default'] ) && $section['default'] === false );
+
+			$states[ $group ] = $this->group_needs( $group ) ? false : ( array_key_exists( $group, $saved ) ? (bool) $saved[ $group ] : $default );
+		}
+
+		return $states;
+	}
+
+	/**
+	 * A sentence when a module cannot be used on this site, empty otherwise.
+	 * Kept so the cards can ask, even though nothing here uses it yet.
+	 */
+	public function unavailable( $id ) {
+		if ( empty( $this->modules[ $id ]['unavailable'] ) || ! is_callable( $this->modules[ $id ]['unavailable'] ) ) {
+			return '';
+		}
+
+		return (string) call_user_func( $this->modules[ $id ]['unavailable'] );
+	}
+
+	public function group_enabled( $group ) {
+		$states = $this->group_states();
+
+		return $group === '' || ! isset( $states[ $group ] ) || $states[ $group ];
+	}
+
+	/** The modules that belong to one group. */
+	public function in_group( $group ) {
+		return array_filter(
+			$this->modules,
+			function ( $module ) use ( $group ) {
+				return $module['section'] === $group;
+			}
+		);
+	}
+
+	/** What a whole group is missing, when every module in it is blocked. */
+	public function group_needs( $group ) {
+		$modules = $this->in_group( $group );
+
+		if ( ! $modules ) {
+			return [];
+		}
+
+		$needs = [];
+
+		foreach ( $modules as $id => $module ) {
+			$missing = $this->missing( $id );
+
+			if ( ! $missing ) {
+				return [];
+			}
+
+			$needs = array_merge( $needs, $missing );
+		}
+
+		return array_values( array_unique( $needs ) );
 	}
 
 	/**

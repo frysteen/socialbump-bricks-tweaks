@@ -26,6 +26,12 @@ class SBBT_Settings {
 		// The shared overview page, when more than one SocialBUMP plugin is about.
 		add_action( 'admin_menu', [ $this, 'register_overview' ], 5 );
 		add_action( 'admin_post_sbbt_save', [ $this, 'save' ] );
+		add_action( 'admin_post_sbbt_save_groups', [ $this, 'save_groups' ] );
+
+		// Cards that collapse and can be dragged into the order you want.
+		if ( class_exists( 'SocialBUMP_Cards' ) ) {
+			SocialBUMP_Cards::register( 'sbbt', self::PAGE_SLUG );
+		}
 		add_action( 'admin_enqueue_scripts', [ $this, 'styles' ] );
 		add_action( 'admin_bar_menu', [ $this, 'admin_bar' ], 100 );
 	}
@@ -40,7 +46,7 @@ class SBBT_Settings {
 			esc_html__( 'SB Bricks Tweaks', 'sb-bricks-tweaks' ),
 			'manage_options',
 			self::PAGE_SLUG,
-			[ $this, 'render' ],
+			[ $this, 'render_groups' ],
 			$this->menu_icon(),
 			$this->menu_position()
 		);
@@ -49,11 +55,36 @@ class SBBT_Settings {
 		add_submenu_page(
 			self::PAGE_SLUG,
 			esc_html__( 'SocialBUMP Bricks Tweaks', 'sb-bricks-tweaks' ),
-			esc_html__( 'Features', 'sb-bricks-tweaks' ),
+			esc_html__( 'Modules', 'sb-bricks-tweaks' ),
 			'manage_options',
 			self::PAGE_SLUG,
-			[ $this, 'render' ]
+			[ $this, 'render_groups' ]
 		);
+
+		/**
+		 * Each group that is switched on gets a page of its own, in the order the
+		 * cards were arranged.
+		 */
+		$sections = $this->sections();
+
+		foreach ( $this->ordered_groups() as $group => $on ) {
+			if ( ! $on || ! SBBT_Modules::instance()->in_group( $group ) ) {
+				continue;
+			}
+
+			$section = isset( $sections[ $group ] ) ? $sections[ $group ] : [];
+
+			add_submenu_page(
+				self::PAGE_SLUG,
+				esc_html( isset( $section['title'] ) ? $section['title'] : $group ),
+				esc_html( isset( $section['title'] ) ? $section['title'] : $group ),
+				'manage_options',
+				self::group_page_slug( $group ),
+				function () use ( $group ) {
+					$this->render_group( $group );
+				}
+			);
+		}
 
 		add_submenu_page(
 			self::PAGE_SLUG,
@@ -76,6 +107,12 @@ class SBBT_Settings {
 		}
 
 		foreach ( SBBT_Modules::instance()->enabled() as $id => $module ) {
+			// A feature that is the only one in its group is already shown on the
+			// group page, so it does not need a second entry of its own.
+			if ( count( SBBT_Modules::instance()->in_group( $module['section'] ) ) === 1 ) {
+				continue;
+			}
+
 			if ( empty( $module['admin_page']['title'] ) || empty( $module['admin_page']['render'] ) || ! is_callable( $module['admin_page']['render'] ) ) {
 				continue;
 			}
@@ -96,6 +133,262 @@ class SBBT_Settings {
 	/**
 	 * One card setting field. Shown while the module's switch is on.
 	 */
+	/**
+	 * The groups in the order this user arranged them on the Modules page, or by
+	 * name until they have. Feeds the menu, the tab bar and the admin bar, so the
+	 * order is the same everywhere. Modules stays first; Updates and Publishing
+	 * stay last; only the groups between them move.
+	 */
+	public function ordered_groups() {
+		$states   = SBBT_Modules::instance()->group_states();
+		$sections = $this->sections();
+		$titles   = [];
+
+		foreach ( $states as $group => $on ) {
+			$titles[ $group ] = isset( $sections[ $group ]['title'] ) ? $sections[ $group ]['title'] : $group;
+		}
+
+		$ids     = class_exists( 'SocialBUMP_Cards' ) ? SocialBUMP_Cards::sort( $titles, 'sbbt_groups' ) : array_keys( $titles );
+		$ordered = [];
+
+		foreach ( $ids as $group ) {
+			$ordered[ $group ] = $states[ $group ];
+		}
+
+		return $ordered;
+	}
+
+	public static function group_page_slug( $group ) {
+		return self::PAGE_SLUG . '-' . sanitize_key( $group );
+	}
+
+	/**
+	 * The Modules page: one switch per group. A group that is on gets its own
+	 * page in the menu, holding the features that belong to it.
+	 */
+	public function render_groups() {
+		$sections = $this->sections();
+		$states   = SBBT_Modules::instance()->group_states();
+
+		echo '<div class="wrap sbbt-wrap">';
+		$this->render_header( __( 'Modules', 'sb-bricks-tweaks' ), __( 'Switch on the parts of the kit this site needs. Each one adds its own page below.', 'sb-bricks-tweaks' ) );
+
+		if ( isset( $_GET['updated'] ) ) {
+			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Settings saved.', 'sb-bricks-tweaks' ) . '</p></div>';
+		}
+
+		echo '<form method="post" data-sb-dirty action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';
+		echo '<input type="hidden" name="action" value="sbbt_save_groups">';
+		wp_nonce_field( 'sbbt_save_groups' );
+		echo '<section class="sbbt-section"><div class="sbbt-section__head"><h2>' . esc_html__( 'Modules', 'sb-bricks-tweaks' ) . '</h2><p>' . esc_html__( 'Each one switched on adds its own page to the menu. Reorder puts them in the order you want, here and in the menus, and each one collapses to its title.', 'sb-bricks-tweaks' ) . '</p></div>';
+
+		// By name until the user drags them; then in their order, new ones by name at the end.
+		$titles = [];
+
+		foreach ( $sections as $group => $section ) {
+			$titles[ $group ] = $section['title'];
+		}
+
+		$ordered = class_exists( 'SocialBUMP_Cards' ) ? SocialBUMP_Cards::sort( $titles, 'sbbt_groups' ) : array_keys( $titles );
+
+		if ( class_exists( 'SocialBUMP_Cards' ) ) {
+			echo SocialBUMP_Cards::toolbar( 'sbbt_groups', 'links' );
+		}
+
+		echo '<div class="sbbt-grid"' . ( class_exists( 'SocialBUMP_Cards' ) ? SocialBUMP_Cards::container_attributes( 'sbbt_groups', 'sbbt' ) : '' ) . '>';
+
+		foreach ( $ordered as $group ) {
+			$section = $sections[ $group ];
+			$modules = SBBT_Modules::instance()->in_group( $group );
+
+			if ( ! $modules ) {
+				continue;
+			}
+
+			$on    = ! empty( $states[ $group ] );
+			$states_of = SBBT_Modules::instance()->get_states();
+
+			$needs = SBBT_Modules::instance()->group_needs( $group );
+
+			$card  = '<div class="sbbt-card' . ( $on && ! $needs ? ' is-on' : '' ) . ( $needs ? ' is-unavailable' : '' ) . '"' . ( class_exists( 'SocialBUMP_Cards' ) ? SocialBUMP_Cards::card_attribute( $group ) : '' ) . '>';
+			$card .= '<div class="sbbt-card__head"><h3>' . esc_html( $section['title'] ) . '</h3>';
+			$card .= '<label class="sbbt-switch"><input type="checkbox" name="sbbt_groups[' . esc_attr( $group ) . ']" value="1" ' . checked( $on, true, false ) . ' ' . disabled( (bool) $needs, true, false ) . '>';
+			$card .= '<span class="sbbt-switch__track"><span class="sbbt-switch__dot"></span></span>';
+			$card .= '<span class="screen-reader-text">' . esc_html( $section['title'] ) . '</span></label></div>';
+			$card .= '<p class="sbbt-card__desc">' . esc_html( $section['description'] ) . '</p>';
+
+			if ( $needs ) {
+				/* translators: %s: plugin name(s) */
+				$card .= '<p class="sbbt-card__needs">' . sprintf( esc_html__( 'Needs %s installed and active.', 'sb-bricks-tweaks' ), esc_html( implode( ' and ', $needs ) ) ) . '</p>';
+			}
+			$card .= '<ul class="sbbt-features">';
+
+			foreach ( $modules as $module_id => $module ) {
+				$lit = $on && ! empty( $states_of[ $module_id ] ) && ! SBBT_Modules::instance()->missing( $module_id ) && ! SBBT_Modules::instance()->unavailable( $module_id );
+
+				// A module can report its own switches, so the list shows what is really on.
+				$parts = ( ! empty( $module['features'] ) && is_callable( $module['features'] ) ) ? (array) call_user_func( $module['features'] ) : [];
+
+				if ( ! $parts ) {
+					$parts = [ [ 'label' => $module['title'], 'on' => true ] ];
+				}
+
+				foreach ( $parts as $part ) {
+					$part_on = $lit && ! empty( $part['on'] );
+
+					$card .= '<li class="' . ( $part_on ? 'is-on' : 'is-off' ) . '"><span class="sbbt-dot"></span>' . esc_html( $part['label'] ) . '</li>';
+				}
+			}
+
+			$card .= '</ul>';
+
+			if ( $on ) {
+				$card .= '<p class="sbbt-card__link"><a href="' . esc_url( admin_url( 'admin.php?page=' . self::group_page_slug( $group ) ) ) . '">' . esc_html__( 'Settings', 'sb-bricks-tweaks' ) . '</a></p>';
+			}
+
+			echo $card . '</div>';
+		}
+
+		echo '</div>';
+
+		if ( class_exists( 'SocialBUMP_Cards' ) ) {
+			echo SocialBUMP_Cards::toolbar( 'sbbt_groups', 'reorder' );
+		}
+
+		echo '</section>';
+		submit_button( esc_html__( 'Save changes', 'sb-bricks-tweaks' ) );
+		echo '</form></div>';
+	}
+
+	/**
+	 * One group page: the features that belong to it, each with its own switch.
+	 * A group whose only feature brings its own page, such as Images, shows that
+	 * page here rather than a list with one card on it.
+	 */
+	public function render_group( $group ) {
+		$sections = $this->sections();
+		$section  = isset( $sections[ $group ] ) ? $sections[ $group ] : [ 'title' => $group, 'description' => '' ];
+		$modules  = SBBT_Modules::instance()->in_group( $group );
+
+		echo '<div class="wrap sbbt-wrap">';
+		$this->render_header( $section['title'], $section['description'] );
+
+		if ( isset( $_GET['updated'] ) ) {
+			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Settings saved.', 'sb-bricks-tweaks' ) . '</p></div>';
+		}
+
+		// A single feature with a page of its own: show that page here.
+		$only = count( $modules ) === 1 ? reset( $modules ) : null;
+
+		if ( $only && ! empty( $only['admin_page']['render'] ) && is_callable( $only['admin_page']['render'] ) ) {
+			call_user_func( $only['admin_page']['render'], $only );
+			echo '</div>';
+
+			return;
+		}
+
+		echo '<form method="post" data-sb-dirty action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';
+		echo '<input type="hidden" name="action" value="sbbt_save">';
+		echo '<input type="hidden" name="sbbt_group" value="' . esc_attr( $group ) . '">';
+		wp_nonce_field( 'sbbt_save' );
+		echo '<div class="sbbt-grid">';
+
+		$states = SBBT_Modules::instance()->get_states();
+
+		foreach ( $modules as $id => $module ) {
+			$this->render_card( $id, $module, $states );
+		}
+
+		echo '</div>';
+		submit_button( esc_html__( 'Save changes', 'sb-bricks-tweaks' ) );
+		echo '</form></div>';
+	}
+
+	/** One feature card, with its switch, notes and any settings of its own. */
+	private function render_card( $id, $module, $states ) {
+		$missing = SBBT_Modules::instance()->missing( $id );
+		$blocked = SBBT_Modules::instance()->unavailable( $id );
+		$always  = ! empty( $module['always'] );
+		$on      = $always ? ! $missing && ! $blocked : ( ! empty( $states[ $id ] ) && ! $missing && ! $blocked );
+
+		// A feature with no switch is a settings card: it is always on, so a toggle
+		// stuck in the on position would only invite someone to try turning it off.
+		printf(
+			'<div class="sbbt-card%1$s%2$s"><div class="sbbt-card__head"><h3>%3$s</h3>%4$s</div>',
+			$on ? ' is-on' : '',
+			( $missing || $blocked ) ? ' is-unavailable' : '',
+			esc_html( $module['title'] ),
+			$always ? '' : sprintf(
+				'<label class="sbbt-switch"><input type="checkbox" name="sbbt_modules[%1$s]" value="1" %2$s %3$s><span class="sbbt-switch__track"><span class="sbbt-switch__dot"></span></span><span class="screen-reader-text">%4$s</span></label>',
+				esc_attr( $id ),
+				checked( $on, true, false ),
+				disabled( (bool) $missing || (bool) $blocked, true, false ),
+				esc_html( $module['title'] )
+			)
+		);
+
+		if ( $blocked ) {
+			// A module can point at the setting that is holding it back, so links are allowed here.
+			echo '<p class="sbbt-card__needs">' . wp_kses( $blocked, [ 'a' => [ 'href' => [], 'target' => [], 'rel' => [] ] ] ) . '</p>';
+		}
+
+		if ( $missing ) {
+			printf(
+				'<p class="sbbt-card__needs">' . esc_html__( 'Needs %s installed and active.', 'sb-bricks-tweaks' ) . '</p>',
+				esc_html( implode( ' and ', $missing ) )
+			);
+		}
+
+		if ( $module['description'] ) {
+			echo '<p class="sbbt-card__desc">' . esc_html( $module['description'] ) . '</p>';
+		}
+
+		if ( ! $missing && ! $blocked && ! empty( $module['settings'] ) ) {
+			echo '<div class="sbbt-card__settings">';
+
+			foreach ( $module['settings'] as $key => $field ) {
+				$this->render_field( $id, $key, $field );
+			}
+
+			echo '</div>';
+		}
+
+		if ( $on && ! empty( $module['admin_page']['title'] ) ) {
+			echo '<p class="sbbt-card__link"><a href="' . esc_url( admin_url( 'admin.php?page=' . self::module_page_slug( $id ) ) ) . '">' . esc_html__( 'Settings', 'sb-bricks-tweaks' ) . '</a></p>';
+		}
+
+		echo '</div>';
+	}
+
+	/** Save the group switches from the Modules page. */
+	public function save_groups() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to do that.', 'sb-bricks-tweaks' ) );
+		}
+
+		check_admin_referer( 'sbbt_save_groups' );
+
+		$posted = isset( $_POST['sbbt_groups'] ) ? (array) wp_unslash( $_POST['sbbt_groups'] ) : [];
+		$states = [];
+
+		$saved = (array) get_option( SBBT_Modules::GROUPS_OPTION, [] );
+
+		foreach ( array_keys( $this->sections() ) as $group ) {
+			// A greyed out group has no switch to submit, so keep whatever it was set to.
+			if ( SBBT_Modules::instance()->group_needs( $group ) ) {
+				$states[ $group ] = array_key_exists( $group, $saved ) ? (int) (bool) $saved[ $group ] : 1;
+				continue;
+			}
+
+			$states[ $group ] = empty( $posted[ $group ] ) ? 0 : 1;
+		}
+
+		update_option( SBBT_Modules::GROUPS_OPTION, $states );
+
+		wp_safe_redirect( add_query_arg( [ 'page' => self::PAGE_SLUG, 'updated' => 'true' ], admin_url( 'admin.php' ) ) );
+		exit;
+	}
+
 	private function render_field( $module_id, $key, $field ) {
 		$type    = isset( $field['type'] ) ? $field['type'] : 'text';
 		$label   = isset( $field['label'] ) ? $field['label'] : $key;
@@ -359,20 +652,30 @@ class SBBT_Settings {
 		);
 	}
 	private function bar_items() {
-		$items = [ self::PAGE_SLUG => __( 'Features', 'sb-bricks-tweaks' ) ];
+		$sections = $this->sections();
+		$items    = [ self::PAGE_SLUG => __( 'Modules', 'sb-bricks-tweaks' ) ];
+
+		foreach ( $this->ordered_groups() as $group => $on ) {
+			if ( ! $on || ! SBBT_Modules::instance()->in_group( $group ) ) {
+				continue;
+			}
+
+			$items[ self::group_page_slug( $group ) ] = isset( $sections[ $group ]['title'] ) ? $sections[ $group ]['title'] : $group;
+		}
+
+		// A module with a page of its own, unless its group page already is that page.
+		foreach ( SBBT_Modules::instance()->enabled() as $id => $module ) {
+			if ( empty( $module['admin_page']['title'] ) || count( SBBT_Modules::instance()->in_group( $module['section'] ) ) === 1 ) {
+				continue;
+			}
+
+			$items[ self::module_page_slug( $id ) ] = $module['admin_page']['title'];
+		}
 
 		$items[ self::PAGE_SLUG . '-updates' ] = __( 'Updates', 'sb-bricks-tweaks' );
 
 		if ( function_exists( 'sbbt_is_hub' ) && sbbt_is_hub() ) {
 			$items[ self::PAGE_SLUG . '-publishing' ] = __( 'Publishing', 'sb-bricks-tweaks' );
-		}
-
-		foreach ( SBBT_Modules::instance()->enabled() as $id => $module ) {
-			if ( empty( $module['admin_page']['title'] ) ) {
-				continue;
-			}
-
-			$items[ self::module_page_slug( $id ) ] = $module['admin_page']['title'];
 		}
 
 		return $items;
@@ -445,6 +748,13 @@ class SBBT_Settings {
 		$js     = SBBT_PATH . 'assets/js/admin.js';
 		$js_ver = file_exists( $js ) ? SBBT_VERSION . '.' . filemtime( $js ) : SBBT_VERSION;
 
+		// Shared with the other SocialBUMP plugins: cards that drag and collapse.
+		$cards = SBBT_PATH . 'assets/js/module-cards.js';
+
+		if ( file_exists( $cards ) ) {
+			wp_enqueue_script( 'sb-module-cards', SBBT_URL . 'assets/js/module-cards.js', [], SBBT_VERSION . '.' . filemtime( $cards ), true );
+		}
+
 		wp_enqueue_script( 'sbbt-admin', SBBT_URL . 'assets/js/admin.js', [ 'jquery' ], $js_ver, true );
 	}
 
@@ -455,6 +765,9 @@ class SBBT_Settings {
 
 		check_admin_referer( 'sbbt_save' );
 
+		// A group page posts its own name, so the save goes back to the page it came
+		// from rather than dropping you on the Modules list every time.
+		$group     = isset( $_POST['sbbt_group'] ) ? sanitize_key( wp_unslash( $_POST['sbbt_group'] ) ) : '';
 		$modules   = SBBT_Modules::instance()->all();
 		$saved     = (array) get_option( SBBT_OPTION, [] );
 		$submitted = isset( $_POST['sbbt_modules'] ) ? (array) wp_unslash( $_POST['sbbt_modules'] ) : [];
@@ -494,7 +807,7 @@ class SBBT_Settings {
 		wp_safe_redirect(
 			add_query_arg(
 				[
-					'page'    => self::PAGE_SLUG,
+					'page'    => $group !== '' ? self::group_page_slug( $group ) : self::PAGE_SLUG,
 					'updated' => 'true',
 				],
 				admin_url( 'admin.php' )
