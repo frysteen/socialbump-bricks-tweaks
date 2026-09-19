@@ -3,7 +3,7 @@
  * Plugin Name: SocialBUMP Bricks Tweaks
  * Plugin URI:  https://socialbump.com.au
  * Description: A home for SocialBUMP custom Bricks Builder elements and site tweaks. Turn each one on or off under SB Bricks Tweaks.
- * Version:     1.0.4
+ * Version:     1.0.5
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Author:      SocialBUMP
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SBBT_VERSION', '1.0.4' );
+define( 'SBBT_VERSION', '1.0.5' );
 define( 'SBBT_FILE', __FILE__ );
 define( 'SBBT_PATH', plugin_dir_path( __FILE__ ) );
 define( 'SBBT_URL', plugin_dir_url( __FILE__ ) );
@@ -157,13 +157,6 @@ function sbbt_boot() {
 	}
 
 	require_once SBBT_PATH . 'includes/class-sbbt-modules.php';
-// Shared with the other SocialBUMP plugins, so whichever loads first provides
-// it. Checked here as well as inside the file: an opcache entry compiled before
-// that guard existed took the site down once.
-if ( ! class_exists( 'SocialBUMP_Cards' ) ) {
-	require_once SBBT_PATH . 'includes/class-socialbump-cards.php';
-}
-
 require_once SBBT_PATH . 'includes/class-socialbump-admin-bar.php';
 require_once SBBT_PATH . 'includes/class-socialbump-overview.php';
 	require_once SBBT_PATH . 'includes/class-sbbt-settings.php';
@@ -183,7 +176,27 @@ require_once SBBT_PATH . 'includes/class-socialbump-overview.php';
 		SBBT_Docs::boot();
 	}
 }
+/**
+ * The shared cards class, loaded last on purpose.
+ *
+ * Three plugins carry the same file and whichever declares the class first
+ * wins. This plugin sorts before the others, so loading it at the usual time
+ * meant an older copy elsewhere, one without the guard at the top of the file,
+ * declared the class again and killed the site. Waiting until every plugin has
+ * booted lets the older copy go first, and then there is nothing to clash with.
+ */
+function sbbt_load_cards() {
+	if ( ! class_exists( 'SocialBUMP_Cards' ) ) {
+		require_once SBBT_PATH . 'includes/class-socialbump-cards.php';
+	}
+
+	if ( class_exists( 'SocialBUMP_Cards' ) && class_exists( 'SBBT_Settings' ) ) {
+		SocialBUMP_Cards::register( 'sbbt', SBBT_Settings::PAGE_SLUG );
+	}
+}
+
 add_action( 'plugins_loaded', 'sbbt_boot' );
+add_action( 'plugins_loaded', 'sbbt_load_cards', 99 );
 
 function sbbt_missing_bricks_notice() {
 	if ( ! current_user_can( 'activate_plugins' ) ) {

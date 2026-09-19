@@ -4,7 +4,7 @@ Tags: bricks, acf
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.0.4
+Stable tag: 1.0.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -32,6 +32,9 @@ Extras:
 * Default To WP Editor: open the WordPress editor on posts with no Bricks content.
 
 == Changelog ==
+= 1.0.5 =
+* HOT FIX: on a site running an older SocialBUMP Site Kit, this plugin could take the site down with a fatal error, because both carry the same shared file and this one loaded it first. It now loads last, so the order no longer matters and an older Site Kit is left alone.
+
 = 1.0.4 =
 * New Modules page, the same one Site Kit has. Each group of features sits on a card you can switch on or off, collapse to its title, and drag into the order you want.
 * Each group now has a page of its own: Bricks Elements, Conditional Logic and Extras. The menu, the tabs across the top and the admin bar all follow the order you set, and a group that is switched off drops out of all three.

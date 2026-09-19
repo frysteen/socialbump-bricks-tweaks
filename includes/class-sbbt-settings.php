@@ -28,10 +28,8 @@ class SBBT_Settings {
 		add_action( 'admin_post_sbbt_save', [ $this, 'save' ] );
 		add_action( 'admin_post_sbbt_save_groups', [ $this, 'save_groups' ] );
 
-		// Cards that collapse and can be dragged into the order you want.
-		if ( class_exists( 'SocialBUMP_Cards' ) ) {
-			SocialBUMP_Cards::register( 'sbbt', self::PAGE_SLUG );
-		}
+		// The cards class registers itself late, from sbbt_load_cards() in the main
+		// file, because loading it here is too early to be safe.
 		add_action( 'admin_enqueue_scripts', [ $this, 'styles' ] );
 		add_action( 'admin_bar_menu', [ $this, 'admin_bar' ], 100 );
 	}
