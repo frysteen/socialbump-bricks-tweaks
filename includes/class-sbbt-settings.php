@@ -175,10 +175,18 @@ class SBBT_Settings {
 			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Settings saved.', 'sb-bricks-tweaks' ) . '</p></div>';
 		}
 
-		echo '<form method="post" data-sb-dirty action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';
+		echo '<form method="post" autocomplete="off" data-sb-dirty action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';
 		echo '<input type="hidden" name="action" value="sbbt_save_groups">';
 		wp_nonce_field( 'sbbt_save_groups' );
-		echo '<section class="sbbt-section"><div class="sbbt-section__head"><h2>' . esc_html__( 'Modules', 'sb-bricks-tweaks' ) . '</h2><p>' . esc_html__( 'Each one switched on adds its own page to the menu. Reorder puts them in the order you want, here and in the menus, and each one collapses to its title.', 'sb-bricks-tweaks' ) . '</p></div>';
+		// Reorder sits up here with the heading. Below the grid it was too easy to
+		// hit on the way to Save changes.
+		echo '<section class="sbbt-section"><div class="sbbt-section__head sbbt-section__head--tools"><div><h2>' . esc_html__( 'Modules', 'sb-bricks-tweaks' ) . '</h2><p>' . esc_html__( 'Each one switched on adds its own page to the menu. Reorder puts them in the order you want, here and in the menus, and each one collapses to its title.', 'sb-bricks-tweaks' ) . '</p></div>';
+
+		if ( class_exists( 'SocialBUMP_Cards' ) ) {
+			echo SocialBUMP_Cards::toolbar( 'sbbt_groups', 'reorder' );
+		}
+
+		echo '</div>';
 
 		// By name until the user drags them; then in their order, new ones by name at the end.
 		$titles = [];
@@ -250,11 +258,10 @@ class SBBT_Settings {
 		echo '</div>';
 
 		if ( class_exists( 'SocialBUMP_Cards' ) ) {
-			echo SocialBUMP_Cards::toolbar( 'sbbt_groups', 'reorder' );
 		}
 
 		echo '</section>';
-		submit_button( esc_html__( 'Save changes', 'sb-bricks-tweaks' ) );
+		submit_button( esc_html__( 'Save changes', 'sb-bricks-tweaks' ), 'primary sb-save--clean' );
 		echo '</form></div>';
 	}
 
@@ -285,7 +292,7 @@ class SBBT_Settings {
 			return;
 		}
 
-		echo '<form method="post" data-sb-dirty action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';
+		echo '<form method="post" autocomplete="off" data-sb-dirty action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';
 		echo '<input type="hidden" name="action" value="sbbt_save">';
 		echo '<input type="hidden" name="sbbt_group" value="' . esc_attr( $group ) . '">';
 		wp_nonce_field( 'sbbt_save' );
@@ -298,7 +305,7 @@ class SBBT_Settings {
 		}
 
 		echo '</div>';
-		submit_button( esc_html__( 'Save changes', 'sb-bricks-tweaks' ) );
+		submit_button( esc_html__( 'Save changes', 'sb-bricks-tweaks' ), 'primary sb-save--clean' );
 		echo '</form></div>';
 	}
 
@@ -939,7 +946,7 @@ class SBBT_Settings {
 			<?php if ( empty( $modules ) ) : ?>
 				<p><?php esc_html_e( 'No modules found yet.', 'sb-bricks-tweaks' ); ?></p>
 			<?php else : ?>
-				<form method="post" data-sb-dirty action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+				<form method="post" autocomplete="off" data-sb-dirty action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 					<input type="hidden" name="action" value="sbbt_save">
 					<?php wp_nonce_field( 'sbbt_save' ); ?>
 
@@ -1006,7 +1013,7 @@ class SBBT_Settings {
 						</section>
 					<?php endforeach; ?>
 
-					<?php submit_button( esc_html__( 'Save changes', 'sb-bricks-tweaks' ) ); ?>
+					<?php submit_button( esc_html__( 'Save changes', 'sb-bricks-tweaks' ), 'primary sb-save--clean' ); ?>
 				</form>
 			<?php endif; ?>
 

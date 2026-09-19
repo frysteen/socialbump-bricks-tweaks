@@ -4,7 +4,7 @@ Tags: bricks, acf
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.0.6
+Stable tag: 1.0.7
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -32,6 +32,13 @@ Extras:
 * Default To WP Editor: open the WordPress editor on posts with no Bricks content.
 
 == Changelog ==
+= 1.0.7 =
+* Reorder Cards has moved up beside the Modules heading, on the right. It used to sit just above Save changes, which made it easy to hit by mistake.
+* The Save changes button now fills with your admin colour scheme once there is something to save, instead of the pale yellow. The unsaved changes reminder stays yellow, since it is a notice rather than a button.
+* The Save changes button no longer flashes as a live button for a moment when a settings page loads. It now starts in its resting state.
+* Settings forms no longer hold on to unsaved changes when you reload the page past the warning. The page now comes back showing what is actually saved, rather than your unsaved edits sitting there looking saved.
+* Select all and Select none, Collapse all and the other text links now all look the same and sit in the same place, with a hover colour you can actually see.
+
 = 1.0.6 =
 * Fixed settings not saving properly since the features were split into their own pages. Saving one page wiped what was set on the others, so saving Extras would switch the Conditional Logic features back off and the other way round. Each page now saves only what is on it.
 * Fix ACF CPT SVG Icons has moved to SocialBUMP Site Kit, under Admin Settings, because it has nothing to do with Bricks. If you were using it, switch it on there and it behaves exactly as before.

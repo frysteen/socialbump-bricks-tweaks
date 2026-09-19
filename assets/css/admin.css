@@ -549,9 +549,11 @@ a.sbbt-header__version.is-outdated:focus {
 .wp-core-ui .button-primary.sb-save--dirty,
 .wp-core-ui .button-primary.sb-save--dirty:hover,
 .wp-core-ui .button-primary.sb-save--dirty:focus {
-	background: #fdf8e8 !important;
-	border: 1px solid #dba617 !important;
-	color: #7a5a00 !important;
+	background: var(--sbbt-accent, #2271b1) !important;
+	background: color-mix(in srgb, var(--sbbt-accent, #2271b1) 76%, #000) !important;
+	border: 1px solid var(--sbbt-accent, #2271b1) !important;
+	border-color: color-mix(in srgb, var(--sbbt-accent, #2271b1) 76%, #000) !important;
+	color: #fff !important;
 	font-weight: 600;
 	box-shadow: none !important;
 	text-shadow: none !important;
@@ -559,7 +561,7 @@ a.sbbt-header__version.is-outdated:focus {
 
 .wp-core-ui .button.sb-save--dirty:hover,
 .wp-core-ui .button-primary.sb-save--dirty:hover {
-	background: #fcf0d4 !important;
+	filter: brightness(0.92);
 }
 
 /* The reminder that follows you down the page. */
@@ -905,4 +907,49 @@ a.sbbt-header__version.is-outdated:focus {
 
 [data-sb-card] > :first-child > h3 {
 	flex: 1;
+}
+
+/* The heading row carries Reorder Cards on its right */
+.sbbt-section__head--tools {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px;
+}
+
+.sbbt-section__head--tools .sb-cards__tools--reorder {
+	flex: none;
+	margin: 0;
+}
+
+/* Text toggle links: Select all, Select none, Collapse all, the all | none
+   pairs on the Image Cleaner. One look for the lot, so a new one never has to
+   be styled again. Marked sb-toggle on the link itself. */
+.wp-core-ui .button-link.sb-toggle,
+a.sb-toggle {
+	color: var(--sbbt-accent, #2271b1);
+	color: color-mix(in srgb, var(--sbbt-accent, #2271b1) 72%, #000);
+	font-size: 12px;
+	text-decoration: underline;
+	text-underline-offset: 2px;
+}
+
+.wp-core-ui .button-link.sb-toggle:hover,
+.wp-core-ui .button-link.sb-toggle:focus,
+a.sb-toggle:hover,
+a.sb-toggle:focus {
+	color: var(--sbbt-accent, #2271b1);
+	color: color-mix(in srgb, var(--sbbt-accent, #2271b1) 42%, #000);
+	text-decoration: underline;
+}
+
+/* A pair sits at the right of whatever it belongs to */
+.sb-toggles {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 8px;
+	margin: 0 0 10px;
+	font-size: 12px;
+	color: #c3c4c7;
 }
