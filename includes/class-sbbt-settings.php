@@ -766,10 +766,13 @@ class SBBT_Settings {
 		// A group page posts its own name, so the save goes back to the page it came
 		// from rather than dropping you on the Modules list every time.
 		$group     = isset( $_POST['sbbt_group'] ) ? sanitize_key( wp_unslash( $_POST['sbbt_group'] ) ) : '';
-		$modules   = SBBT_Modules::instance()->all();
+		$modules   = $group !== '' ? SBBT_Modules::instance()->in_group( $group ) : SBBT_Modules::instance()->all();
 		$saved     = (array) get_option( SBBT_OPTION, [] );
 		$submitted = isset( $_POST['sbbt_modules'] ) ? (array) wp_unslash( $_POST['sbbt_modules'] ) : [];
-		$states    = [];
+
+		// One group's page only submits its own modules, so start from everything
+		// already saved. Otherwise saving one page would wipe every other group.
+		$states    = $saved;
 
 		foreach ( $modules as $id => $module ) {
 			// A greyed out module can't be changed here, so keep whatever it was set to before.
