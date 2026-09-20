@@ -96,13 +96,13 @@ class SBBT_Relationship_Ordering {
 		}
 
 		$new = [
-			'sbbtRelationshipOrderSeparator' => [
+			'sbBricksRelationshipOrderSeparator' => [
 				'tab'      => 'content',
 				'label'    => 'ACF relationship order',
 				'type'     => 'separator',
 				'required' => $show,
 			],
-			'sbbtRelationshipOrder'          => [
+			'sbBricksRelationshipOrder'          => [
 				'tab'         => 'content',
 				'label'       => 'Order',
 				'type'        => 'select',
@@ -138,7 +138,8 @@ class SBBT_Relationship_Ordering {
 		}
 
 		$settings = ( isset( $query->settings ) && is_array( $query->settings ) ) ? $query->settings : [];
-		$mode     = isset( $settings['sbbtRelationshipOrder'] ) ? (string) $settings['sbbtRelationshipOrder'] : '';
+		// The key this setting had before the rename, for loops saved under it.
+		$mode     = isset( $settings['sbBricksRelationshipOrder'] ) ? (string) $settings['sbBricksRelationshipOrder'] : ( isset( $settings['sbbtRelationshipOrder'] ) ? (string) $settings['sbbtRelationshipOrder'] : '' );
 
 		if ( $mode === '' || $mode === 'original' || ! array_key_exists( $mode, self::modes() ) ) {
 			return $result;

@@ -5,7 +5,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class SBBT_Element_Image_Carousel extends \Bricks\Element {
 	public $category = 'media';
-	public $name     = 'sb-image-carousel';
+	public $name     = 'sb-bricks-image-carousel';
 	public $icon     = 'ti-layout-slider';
 	public $scripts  = [ 'bricksSbbtCarousel' ];
 

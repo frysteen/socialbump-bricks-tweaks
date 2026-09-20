@@ -26,6 +26,9 @@ class SBBT_Conditions {
 
 	private static $conditions = [];
 
+	/** Old key => current key, for conditions saved before a rename. */
+	private static $aliases = [];
+
 	private static $hooked = false;
 
 	public static function register( $condition ) {
@@ -40,6 +43,20 @@ class SBBT_Conditions {
 		}
 
 		self::$conditions[ $condition['key'] ] = $condition;
+
+		/**
+		 * A condition that has been renamed answers to its old key as well.
+		 *
+		 * Bricks saves the key with the element, so every page built before the
+		 * rename still says the old one. The alias is evaluated but never offered
+		 * in the builder, so old pages keep working and nobody can pick it again.
+		 * Drop these once every site has been converted.
+		 */
+		if ( ! empty( $condition['was'] ) ) {
+			foreach ( (array) $condition['was'] as $old_key ) {
+				self::$aliases[ $old_key ] = $condition['key'];
+			}
+		}
 
 		if ( ! self::$hooked ) {
 			self::$hooked = true;
@@ -110,6 +127,11 @@ class SBBT_Conditions {
 	}
 
 	public static function result( $result, $key, $condition ) {
+		// A key saved before a rename still points at the condition that replaced it.
+		if ( isset( self::$aliases[ $key ] ) ) {
+			$key = self::$aliases[ $key ];
+		}
+
 		// Leave conditions from Bricks and other plugins alone.
 		if ( ! isset( self::$conditions[ $key ] ) ) {
 			return $result;

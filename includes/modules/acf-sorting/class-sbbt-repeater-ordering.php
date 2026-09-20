@@ -72,13 +72,13 @@ class SBBT_Repeater_Ordering {
 		}
 
 		$new = [
-			'socialbumpRepeaterOrderSeparator' => [
+			'sbBricksRepeaterOrderSeparator' => [
 				'tab'      => 'content',
 				'label'    => 'ACF repeater order',
 				'type'     => 'separator',
 				'required' => $show,
 			],
-			'socialbumpRepeaterOrder'          => [
+			'sbBricksRepeaterOrder'          => [
 				'tab'         => 'content',
 				'label'       => 'Repeater order',
 				'type'        => 'select',
@@ -87,14 +87,14 @@ class SBBT_Repeater_Ordering {
 				'description' => 'Changes the order rows are shown in. The order saved in ACF stays the same.',
 				'required'    => $show,
 			],
-			'socialbumpRepeaterOrderField'     => [
+			'sbBricksRepeaterOrderField'     => [
 				'tab'            => 'content',
 				'label'          => 'Sort by sub field',
 				'type'           => 'text',
 				'placeholder'    => 'e.g. start_date',
 				'description'    => 'The ACF sub field name, exactly as it appears in ACF.',
 				'hasDynamicData' => false,
-				'required'       => array_merge( $show, [ [ 'socialbumpRepeaterOrder', '=', self::FIELD_MODES ] ] ),
+				'required'       => array_merge( $show, [ [ 'sbBricksRepeaterOrder', '=', self::FIELD_MODES ] ] ),
 			],
 		];
 
@@ -190,13 +190,14 @@ class SBBT_Repeater_Ordering {
 		}
 
 		$settings = ( isset( $query->settings ) && is_array( $query->settings ) ) ? $query->settings : [];
-		$mode     = isset( $settings['socialbumpRepeaterOrder'] ) ? (string) $settings['socialbumpRepeaterOrder'] : '';
+		// The keys these settings had before the rename, for loops saved under them.
+		$mode     = isset( $settings['sbBricksRepeaterOrder'] ) ? (string) $settings['sbBricksRepeaterOrder'] : ( isset( $settings['socialbumpRepeaterOrder'] ) ? (string) $settings['socialbumpRepeaterOrder'] : '' );
 
 		if ( $mode === '' || $mode === 'original' || ! array_key_exists( $mode, self::modes() ) ) {
 			return $result;
 		}
 
-		$field = isset( $settings['socialbumpRepeaterOrderField'] ) ? preg_replace( '/[^A-Za-z0-9_-]/', '', (string) $settings['socialbumpRepeaterOrderField'] ) : '';
+		$field = isset( $settings['sbBricksRepeaterOrderField'] ) ? preg_replace( '/[^A-Za-z0-9_-]/', '', (string) $settings['sbBricksRepeaterOrderField'] ) : ( isset( $settings['socialbumpRepeaterOrderField'] ) ? preg_replace( '/[^A-Za-z0-9_-]/', '', (string) $settings['socialbumpRepeaterOrderField'] ) : '' );
 
 		return self::sort( $result, $field, $mode );
 	}

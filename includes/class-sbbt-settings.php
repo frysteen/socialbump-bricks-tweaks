@@ -53,7 +53,7 @@ class SBBT_Settings {
 		add_submenu_page(
 			self::PAGE_SLUG,
 			esc_html__( 'SocialBUMP Bricks Tweaks', 'sb-bricks-tweaks' ),
-			esc_html__( 'Modules', 'sb-bricks-tweaks' ),
+			esc_html__( 'Features', 'sb-bricks-tweaks' ),
 			'manage_options',
 			self::PAGE_SLUG,
 			[ $this, 'render_groups' ]
@@ -132,7 +132,7 @@ class SBBT_Settings {
 	 * One card setting field. Shown while the module's switch is on.
 	 */
 	/**
-	 * The groups in the order this user arranged them on the Modules page, or by
+	 * The groups in the order this user arranged them on the Features page, or by
 	 * name until they have. Feeds the menu, the tab bar and the admin bar, so the
 	 * order is the same everywhere. Modules stays first; Updates and Publishing
 	 * stay last; only the groups between them move.
@@ -146,7 +146,7 @@ class SBBT_Settings {
 			$titles[ $group ] = isset( $sections[ $group ]['title'] ) ? $sections[ $group ]['title'] : $group;
 		}
 
-		$ids     = class_exists( 'SocialBUMP_Cards' ) ? SocialBUMP_Cards::sort( $titles, 'sbbt_groups' ) : array_keys( $titles );
+		$ids     = class_exists( 'SocialBUMP_Cards' ) ? SocialBUMP_Cards::sort( $titles, SBBT_Modules::GROUPS_OPTION ) : array_keys( $titles );
 		$ordered = [];
 
 		foreach ( $ids as $group ) {
@@ -161,7 +161,7 @@ class SBBT_Settings {
 	}
 
 	/**
-	 * The Modules page: one switch per group. A group that is on gets its own
+	 * The Features page: one switch per group. A group that is on gets its own
 	 * page in the menu, holding the features that belong to it.
 	 */
 	public function render_groups() {
@@ -169,7 +169,7 @@ class SBBT_Settings {
 		$states   = SBBT_Modules::instance()->group_states();
 
 		echo '<div class="wrap sbbt-wrap">';
-		$this->render_header( __( 'Modules', 'sb-bricks-tweaks' ), __( 'Switch on the parts of the kit this site needs. Each one adds its own page below.', 'sb-bricks-tweaks' ) );
+		$this->render_header( __( 'Features', 'sb-bricks-tweaks' ), __( 'Switch on the parts of the kit this site needs. Each one adds its own page below.', 'sb-bricks-tweaks' ) );
 
 		if ( isset( $_GET['updated'] ) ) {
 			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Settings saved.', 'sb-bricks-tweaks' ) . '</p></div>';
@@ -180,10 +180,10 @@ class SBBT_Settings {
 		wp_nonce_field( 'sbbt_save_groups' );
 		// Reorder sits up here with the heading. Below the grid it was too easy to
 		// hit on the way to Save changes.
-		echo '<section class="sbbt-section"><div class="sbbt-section__head sbbt-section__head--tools"><div><h2>' . esc_html__( 'Modules', 'sb-bricks-tweaks' ) . '</h2><p>' . esc_html__( 'Each one switched on adds its own page to the menu. Reorder puts them in the order you want, here and in the menus, and each one collapses to its title.', 'sb-bricks-tweaks' ) . '</p></div>';
+		echo '<section class="sbbt-section"><div class="sbbt-section__head sbbt-section__head--tools"><div><h2>' . esc_html__( 'Features', 'sb-bricks-tweaks' ) . '</h2><p>' . esc_html__( 'Each one switched on adds its own page to the menu. Reorder puts them in the order you want, here and in the menus, and each one collapses to its title.', 'sb-bricks-tweaks' ) . '</p></div>';
 
 		if ( class_exists( 'SocialBUMP_Cards' ) ) {
-			echo SocialBUMP_Cards::toolbar( 'sbbt_groups', 'reorder' );
+			echo SocialBUMP_Cards::toolbar( SBBT_Modules::GROUPS_OPTION, 'reorder' );
 		}
 
 		echo '</div>';
@@ -195,13 +195,13 @@ class SBBT_Settings {
 			$titles[ $group ] = $section['title'];
 		}
 
-		$ordered = class_exists( 'SocialBUMP_Cards' ) ? SocialBUMP_Cards::sort( $titles, 'sbbt_groups' ) : array_keys( $titles );
+		$ordered = class_exists( 'SocialBUMP_Cards' ) ? SocialBUMP_Cards::sort( $titles, SBBT_Modules::GROUPS_OPTION ) : array_keys( $titles );
 
 		if ( class_exists( 'SocialBUMP_Cards' ) ) {
-			echo SocialBUMP_Cards::toolbar( 'sbbt_groups', 'links' );
+			echo SocialBUMP_Cards::toolbar( SBBT_Modules::GROUPS_OPTION, 'links' );
 		}
 
-		echo '<div class="sbbt-grid"' . ( class_exists( 'SocialBUMP_Cards' ) ? SocialBUMP_Cards::container_attributes( 'sbbt_groups', 'sbbt' ) : '' ) . '>';
+		echo '<div class="sbbt-grid"' . ( class_exists( 'SocialBUMP_Cards' ) ? SocialBUMP_Cards::container_attributes( SBBT_Modules::GROUPS_OPTION, 'sbbt' ) : '' ) . '>';
 
 		foreach ( $ordered as $group ) {
 			$section = $sections[ $group ];
@@ -365,7 +365,7 @@ class SBBT_Settings {
 		echo '</div>';
 	}
 
-	/** Save the group switches from the Modules page. */
+	/** Save the group switches from the Features page. */
 	public function save_groups() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'You do not have permission to do that.', 'sb-bricks-tweaks' ) );
@@ -658,7 +658,7 @@ class SBBT_Settings {
 	}
 	private function bar_items() {
 		$sections = $this->sections();
-		$items    = [ self::PAGE_SLUG => __( 'Modules', 'sb-bricks-tweaks' ) ];
+		$items    = [ self::PAGE_SLUG => __( 'Features', 'sb-bricks-tweaks' ) ];
 
 		foreach ( $this->ordered_groups() as $group => $on ) {
 			if ( ! $on || ! SBBT_Modules::instance()->in_group( $group ) ) {

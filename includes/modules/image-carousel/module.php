@@ -10,8 +10,15 @@ return [
 	'type'          => 'element',
 	'default'       => true,
 	'element_file'  => 'class-element-image-carousel.php',
-	'element_name'  => 'sb-image-carousel',
+	'element_name'  => 'sb-bricks-image-carousel',
 	'element_class' => 'SBBT_Element_Image_Carousel',
+
+	// The name this element had before the rename, kept registered so pages
+	// built with it still render. Hidden from the builder panel. Remove once
+	// every site has been converted.
+	'element_legacy_file'  => 'class-element-image-carousel-legacy.php',
+	'element_legacy_name'  => 'sb-image-carousel',
+	'element_legacy_class' => 'SBBT_Element_Image_Carousel_Legacy',
 
 	'assets' => function ( $module ) {
 		$ver = function ( $relative ) use ( $module ) {

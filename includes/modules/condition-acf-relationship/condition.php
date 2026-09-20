@@ -12,7 +12,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  * return format does not matter.
  */
 return [
-	'key'     => 'socialbump_acf_relationship',
+	'key'     => 'sb_bricks_acf_relationship',
+	'was'     => [ 'socialbump_acf_relationship' ],
 	'label'   => 'ACF Relationship',
 	'compare' => [
 		'has_items' => 'Has items',

@@ -11,7 +11,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  * rather than calling have_rows(), so no ACF loop is left open.
  */
 return [
-	'key'     => 'socialbump_acf_repeater',
+	'key'     => 'sb_bricks_acf_repeater',
+	'was'     => [ 'socialbump_acf_repeater' ],
 	'label'   => 'ACF Repeater',
 	'compare' => [
 		'has_rows'    => 'Has rows',

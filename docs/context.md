@@ -31,7 +31,11 @@ is never loaded.
 | Extras | ACF Gallery Loop, ACF Loop Sorting, Default To WP Editor |
 | Elements | Image Carousel |
 
-Each of those groups is a card on the Modules page, the same arrangement Site
+The shared block below still calls this the Modules page, because Site Kit's
+is still called that. Bricks Tweaks renamed its own in September 2026, ready for
+the merge, where Modules means what these plugins become.
+
+Each of those groups is a card on the Features page, the same arrangement Site
 Kit uses, and each has a page of its own. A group can be switched off as a
 whole, which takes its page out of the menu, the tabs and the admin bar, and
 stops every module inside it from loading. The order the cards are dragged into
@@ -49,7 +53,7 @@ listed no groups at all until someone noticed, and save() was ported without
 the two lines that keep one group's page from wiping the others.
 
 Saving on a group page posts sbbt_group and comes back to that page. Saving on
-the Modules page stays there.
+the Features page stays there.
 
 ## Conditions
 
@@ -165,6 +169,7 @@ Bricks CSS files and reload the builder before deciding something is broken.
 | includes/class-sbbt-updates.php | the Updates page |
 | includes/class-sbbt-transfer.php | settings export and import |
 | includes/class-sbbt-docs.php | these notes and the Publishing panel |
+| includes/class-sbbt-convert.php | moves the old sbbt_ options onto the sb_tweaks_bricks_ names, once |
 
 The modules:
 
@@ -199,6 +204,61 @@ features, and a boot callback.
 | sbbt_module_settings | each module settings |
 | sbbt_github_token | encrypted, hub only |
 | sbbt_pending_changes | notes for the next release |
+
+## Names, and which ones can never change
+
+Two kinds of name live in this plugin and they are treated in opposite ways.
+
+**Saved in the site's options.** Which features are on, the group switches,
+feature settings, the per user card order. These are sb_tweaks_bricks_ names
+now: sb_tweaks_bricks_features, _settings and _groups. They were renamed in
+September 2026 so the merge into SocialBUMP Tweaks inherits clean data and
+needs no converter of its own. SBBT_Convert copies the old sbbt_ options and
+the card meta across on first load, backs everything up into
+sb_tweaks_bricks_backup, deletes nothing, and records SCHEME so it runs once.
+Bump SCHEME if the names ever move again.
+
+**Saved inside the pages themselves.** These are the dangerous ones: Bricks
+writes them into every page and template that uses the feature, so renaming
+one in code breaks live pages silently, with no error anywhere. They are all
+sb_bricks_ now:
+
+| What | Now | Was |
+| --- | --- | --- |
+| Condition keys | sb_bricks_acf_relationship, _acf_repeater, _bricks_content, _post_type, _woo_archive_display | socialbump_* |
+| Carousel element name | sb-bricks-image-carousel | sb-image-carousel |
+| Relationship loop order | sbBricksRelationshipOrder | sbbtRelationshipOrder |
+| Repeater loop order | sbBricksRepeaterOrder, sbBricksRepeaterOrderField | socialbumpRepeaterOrder, socialbumpRepeaterOrderField |
+| Gallery loop | sbBricksGalleryOrder, Offset, Limit | sbbtGallery* |
+| Gallery query type | sb_bricks_gallery_<field> | sbbt_gallery_<field> |
+
+The convention, so a new one never has to be guessed at: options, functions
+and classes in snake_case; CSS classes hyphenated; Bricks element setting keys
+in camelCase, because that is what Bricks itself uses; element names
+hyphenated, because the name becomes the brxe- class; condition keys in
+snake_case.
+
+### The fallbacks, and when to remove them
+
+Nothing converts page data by itself. Each site is converted by hand, so the
+code has to understand both names until that is done everywhere:
+
+- A condition declares 'was' in its condition.php. SBBT_Conditions keeps an
+  alias map, so an old key still evaluates, while only the new key is offered
+  in the builder. Nobody can pick an old one again.
+- The carousel keeps its old name through a second class marked
+  deprecated = true, which is Bricks' own way of keeping an element working
+  while hiding it from the panel. An unregistered element name renders
+  nothing at all, so this one matters most.
+- The loop settings and the gallery query type read the new key and fall back
+  to the old one.
+
+Do not rely on re-saving a page to convert it. Bricks saves what the builder
+has in front of it, and the builder binds controls by key: an old key shows as
+an empty setting, so a save can quietly drop the value. Convert the data, then
+edit.
+
+Take the fallbacks out once every site has been converted, and only then.
 
 ## Where to be careful
 

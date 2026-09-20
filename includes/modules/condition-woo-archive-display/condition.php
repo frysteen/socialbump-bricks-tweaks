@@ -14,7 +14,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Pick more than one to match any of them. Off a shop archive nothing matches.
  */
 return [
-	'key'        => 'socialbump_woo_archive_display',
+	'key'        => 'sb_bricks_woo_archive_display',
+	'was'     => [ 'socialbump_woo_archive_display' ],
 	'label'      => 'WooCommerce Archive Display',
 	'needs_post' => false,
 	'compare'    => [

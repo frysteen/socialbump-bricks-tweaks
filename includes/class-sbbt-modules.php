@@ -32,9 +32,9 @@ class SBBT_Modules {
 	private static $instance = null;
 
 	/** Where card settings are saved, keyed by module id. */
-	const SETTINGS_OPTION = 'sbbt_module_settings';
+	const SETTINGS_OPTION = 'sb_tweaks_bricks_settings';
 
-	const GROUPS_OPTION = 'sbbt_groups';
+	const GROUPS_OPTION = 'sb_tweaks_bricks_groups';
 
 	/** All discovered modules, keyed by id. */
 	private $modules = [];
@@ -411,6 +411,17 @@ class SBBT_Modules {
 				$module['element_name'] ?? '',
 				$module['element_class'] ?? ''
 			);
+
+			// A renamed element keeps its old name registered as well, or every page
+			// built with it renders nothing. The legacy class hides itself from the
+			// builder panel.
+			if ( ! empty( $module['element_legacy_file'] ) ) {
+				\Bricks\Elements::register_element(
+					$module['path'] . $module['element_legacy_file'],
+					$module['element_legacy_name'] ?? '',
+					$module['element_legacy_class'] ?? ''
+				);
+			}
 		}
 	}
 

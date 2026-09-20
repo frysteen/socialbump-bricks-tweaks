@@ -14,7 +14,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  * setups keep working.
  */
 return [
-	'key'     => 'socialbump_bricks_content',
+	'key'     => 'sb_bricks_bricks_content',
+	'was'     => [ 'socialbump_bricks_content' ],
 	'label'   => 'Bricks Content',
 	'compare' => [
 		'==' => 'Is',

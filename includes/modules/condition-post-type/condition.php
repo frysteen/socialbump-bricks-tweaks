@@ -13,7 +13,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Conditions saved before multi-select (a single post type) still work.
  */
 return [
-	'key'     => 'socialbump_post_type',
+	'key'     => 'sb_bricks_post_type',
+	'was'     => [ 'socialbump_post_type' ],
 	'label'   => 'Post Type',
 	'compare' => [
 		'==' => 'Is',

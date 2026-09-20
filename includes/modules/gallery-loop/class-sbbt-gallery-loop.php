@@ -8,7 +8,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * Bricks only turns repeaters, relationships and post objects into loop types,
  * so galleries can normally only be looped with a PHP query. This registers a
- * query type per gallery field (sbbt_gallery_<field name>) and returns the
+ * query type per gallery field (sb_bricks_gallery_<field name>) and returns the
  * attachment posts, so every element inside the loop can use the media dynamic
  * data tags: image, alt text, caption, title and so on.
  *
@@ -18,7 +18,10 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class SBBT_Gallery_Loop {
 
-	const PREFIX = 'sbbt_gallery_';
+	const PREFIX     = 'sb_bricks_gallery_';
+
+	/** What the query type was called before the rename. Loops saved under it still have to run. */
+	const PREFIX_OLD = 'sbbt_gallery_';
 
 	const ORDER_MODES = [
 		''             => 'Gallery order',
@@ -117,13 +120,13 @@ class SBBT_Gallery_Loop {
 		];
 
 		$new = [
-			'sbbtGalleryOrderSeparator' => [
+			'sbBricksGalleryOrderSeparator' => [
 				'tab'      => 'content',
 				'label'    => 'Gallery order',
 				'type'     => 'separator',
 				'required' => $show,
 			],
-			'sbbtGalleryOrder'          => [
+			'sbBricksGalleryOrder'          => [
 				'tab'         => 'content',
 				'label'       => 'Order',
 				'type'        => 'select',
@@ -131,7 +134,7 @@ class SBBT_Gallery_Loop {
 				'placeholder' => 'Gallery order',
 				'required'    => $show,
 			],
-			'sbbtGalleryLimit'          => [
+			'sbBricksGalleryLimit'          => [
 				'tab'            => 'content',
 				'label'          => 'Limit',
 				'type'           => 'number',
@@ -140,7 +143,7 @@ class SBBT_Gallery_Loop {
 				'hasDynamicData' => false,
 				'required'       => $show,
 			],
-			'sbbtGalleryOffset'         => [
+			'sbBricksGalleryOffset'         => [
 				'tab'            => 'content',
 				'label'          => 'Offset',
 				'type'           => 'number',
@@ -182,10 +185,10 @@ class SBBT_Gallery_Loop {
 			return [];
 		}
 
-		$ids = self::sort( $ids, isset( $settings['sbbtGalleryOrder'] ) ? (string) $settings['sbbtGalleryOrder'] : '' );
+		$ids = self::sort( $ids, isset( $settings['sbBricksGalleryOrder'] ) ? (string) $settings['sbBricksGalleryOrder'] : ( isset( $settings['sbbtGalleryOrder'] ) ? (string) $settings['sbbtGalleryOrder'] : '' ) );
 
-		$offset = isset( $settings['sbbtGalleryOffset'] ) ? max( 0, (int) $settings['sbbtGalleryOffset'] ) : 0;
-		$limit  = isset( $settings['sbbtGalleryLimit'] ) ? (int) $settings['sbbtGalleryLimit'] : 0;
+		$offset = isset( $settings['sbBricksGalleryOffset'] ) ? max( 0, (int) $settings['sbBricksGalleryOffset'] ) : ( isset( $settings['sbbtGalleryOffset'] ) ? max( 0, (int) $settings['sbbtGalleryOffset'] ) : 0 );
+		$limit  = isset( $settings['sbBricksGalleryLimit'] ) ? (int) $settings['sbBricksGalleryLimit'] : ( isset( $settings['sbbtGalleryLimit'] ) ? (int) $settings['sbbtGalleryLimit'] : 0 );
 
 		if ( $offset || $limit > 0 ) {
 			$ids = array_slice( $ids, $offset, $limit > 0 ? $limit : null );
@@ -375,6 +378,6 @@ class SBBT_Gallery_Loop {
 
 		$type = \Bricks\Query::get_query_object_type( $query_id );
 
-		return is_string( $type ) && strpos( $type, self::PREFIX ) === 0;
+		return is_string( $type ) && ( strpos( $type, self::PREFIX ) === 0 || strpos( $type, self::PREFIX_OLD ) === 0 );
 	}
 }

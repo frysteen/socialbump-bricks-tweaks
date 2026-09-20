@@ -4,7 +4,7 @@ Tags: bricks, acf
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.0.7
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -32,6 +32,11 @@ Extras:
 * Default To WP Editor: open the WordPress editor on posts with no Bricks content.
 
 == Changelog ==
+= 1.1.0 =
+* The Modules page is now called Features, to leave the word Modules free for what these plugins are about to become inside SocialBUMP Tweaks. Nothing on it has changed.
+* Settings are now saved under sb_tweaks_bricks_ names, ready for the move into the combined plugin. Your existing settings are converted automatically the first time the site loads after updating, and the old ones are left in place and backed up.
+* The names this plugin saves into your pages have been tidied up so they all start with sb_bricks_: the element conditions, the loop ordering settings, the gallery loop and the Image Carousel element. Pages built before this keep working, because the old names are still understood.
+
 = 1.0.7 =
 * Reorder Cards has moved up beside the Modules heading, on the right. It used to sit just above Save changes, which made it easy to hit by mistake.
 * The Save changes button now fills with your admin colour scheme once there is something to save, instead of the pale yellow. The unsaved changes reminder stays yellow, since it is a notice rather than a button.
