@@ -102,6 +102,14 @@ value and check, registered through SBBT_Conditions. Bricks shows them in the
 element Conditions panel alongside its own. check is the callback that answers
 true or false for the element being drawn.
 
+The post a condition asks about comes from SBBT_Conditions::post_id():
+get_the_ID(), which follows a Bricks query loop, except on the posts page outside
+a loop, where it is the Blog page (page_for_posts). WordPress sets the current post
+there to the first post in the list, so a Single Page template on a Bricks-built
+Blog page used to answer Bricks Content for that post and show the wrong section
+(found on Cosmetic Studio). Conditions are never evaluated in the builder canvas:
+Bricks skips them there so hidden elements stay editable, so test on the front end.
+
 **ACF Relationship.** Answers whether a relationship or post object field has
 anything in it. The usual use is hiding a Related section when nothing has been
 linked, rather than showing an empty heading. Needs ACF.

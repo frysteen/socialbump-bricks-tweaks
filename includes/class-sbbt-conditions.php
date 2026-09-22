@@ -153,8 +153,7 @@ class SBBT_Conditions {
 			$value = trim( (string) $condition['value'] );
 		}
 
-		// get_the_ID() follows the current Bricks query loop, so inside a loop this checks each post.
-		$post_id = (int) get_the_ID();
+		$post_id = self::post_id();
 
 		// Most conditions ask about the current post. One that does not, such as an
 		// archive condition, sets 'needs_post' => false and is checked regardless.
@@ -165,6 +164,31 @@ class SBBT_Conditions {
 		}
 
 		return (bool) call_user_func( $definition['check'], $compare, $value, $post_id );
+	}
+
+	/**
+	 * The post a condition is about.
+	 *
+	 * get_the_ID() follows the current Bricks query loop, so inside a loop each
+	 * post is checked in turn. Outside a loop it is usually the page being
+	 * shown, with one exception: on the posts page WordPress sets the current
+	 * post to the first post in the list, not the page. A template on the Blog
+	 * page then answered for that post instead, so Bricks Content said "not
+	 * built with Bricks" about a page that was, and showed the wrong section.
+	 * There, outside a loop, the Blog page itself is used.
+	 */
+	private static function post_id() {
+		$looping = class_exists( '\Bricks\Query' ) && method_exists( '\Bricks\Query', 'is_any_looping' ) && \Bricks\Query::is_any_looping();
+
+		if ( ! $looping && is_home() ) {
+			$blog = (int) get_option( 'page_for_posts' );
+
+			if ( $blog > 0 ) {
+				return $blog;
+			}
+		}
+
+		return (int) get_the_ID();
 	}
 
 	public static function snippet_notice() {

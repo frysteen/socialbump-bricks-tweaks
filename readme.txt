@@ -4,7 +4,7 @@ Tags: bricks, acf
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.1.1
+Stable tag: 1.1.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -32,6 +32,9 @@ Extras:
 * Default To WP Editor: open the WordPress editor on posts with no Bricks content.
 
 == Changelog ==
+= 1.1.2 =
+* Conditions: on the Blog page, the SocialBUMP conditions now check the Blog page itself rather than the first post in the list, so Bricks Content no longer shows the not-built-with-Bricks section on a Blog page built in Bricks. Inside query loops each post is still checked.
+
 = 1.1.1 =
 * Made the Save changes button more robust, so a save button that is not a standard form submit button still saves.
 * New Extras module, Gutenberg Block Styles: Bricks strips the block editor styles from pages it renders, so Gutenberg content shown through a Bricks template lost its gallery columns, cropping and gaps. It now loads only the styles the content uses. The gallery block also gets a working Block spacing setting with link sides and a full unit list, and every gallery without its own gap uses the Image Gallery spacing from your Bricks theme style, so Gutenberg and Bricks galleries match site wide.
