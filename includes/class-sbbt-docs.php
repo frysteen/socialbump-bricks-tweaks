@@ -135,6 +135,40 @@ class SBBT_Docs {
 		echo '<p class=' . $q . 'description' . $q . '>' . esc_html__( 'Copy this in as the first message, so the chat knows where to look.', 'sb-bricks-tweaks' ) . '</p>';
 		echo '<textarea class=' . $q . 'large-text code sbbt-docs__prompt' . $q . ' rows=' . $q . '5' . $q . ' readonly onclick=' . $q . 'this.select();' . $q . '>' . esc_textarea( $prompt ) . '</textarea>';
 
+		/**
+		 * The second prompt: converting a site that is still on the old names.
+		 *
+		 * Kept here rather than in the notes because it is needed at the moment a
+		 * forgotten site turns up, months after the work was done. Remove it once
+		 * every site has been converted and the fallbacks come out.
+		 */
+		$convert  = 'I have found another site running SocialBUMP Bricks Tweaks that has not been converted to the new naming yet. Help me convert it. ';
+		$convert .= 'Work through its Novamira MCP connector, which I will enable. Do not change anything until you have surveyed it and I have said go. ';
+		$convert .= 'Background: in September 2026 Bricks Tweaks 1.1.0 renamed everything it saves. Two kinds of name changed and they are handled differently. ';
+		$convert .= 'The options are converted automatically by SBBT_Convert the first time the site loads after updating: sbbt_modules becomes sb_tweaks_bricks_features, sbbt_module_settings becomes sb_tweaks_bricks_settings, sbbt_groups becomes sb_tweaks_bricks_groups, and the per user card order under the socialbump_cards user meta gains an sb_tweaks_bricks_groups entry. Nothing old is deleted and it all gets backed up into sb_tweaks_bricks_backup. ';
+		$convert .= 'The names saved inside the pages are NOT converted by the plugin and are the part you have to do by hand, per site, with a script. They are: ';
+		$convert .= 'condition keys socialbump_acf_relationship to sb_bricks_acf_relationship, socialbump_acf_repeater to sb_bricks_acf_repeater, socialbump_bricks_content to sb_bricks_bricks_content, socialbump_post_type to sb_bricks_post_type, socialbump_woo_archive_display to sb_bricks_woo_archive_display; ';
+		$convert .= 'the carousel element name sb-image-carousel to sb-bricks-image-carousel; ';
+		$convert .= 'loop settings sbbtRelationshipOrder to sbBricksRelationshipOrder, socialbumpRepeaterOrder to sbBricksRepeaterOrder, socialbumpRepeaterOrderField to sbBricksRepeaterOrderField, sbbtGalleryOrder to sbBricksGalleryOrder, sbbtGalleryOffset to sbBricksGalleryOffset, sbbtGalleryLimit to sbBricksGalleryLimit; ';
+		$convert .= 'and the gallery loop query type prefix sbbt_gallery_ to sb_bricks_gallery_. ';
+		$convert .= 'All of that lives in postmeta rows whose meta_key starts with _bricks, which means _bricks_page_content_2, _bricks_page_header_2, _bricks_page_footer_2 and _bricks_template_settings, on pages, on bricks_template posts, and on revisions. Convert the revisions too, or restoring one brings an old name back. ';
+		$convert .= 'Condition keys sit in the element settings under _conditions, which is a list of lists of rules, each with key, compare and value: rewrite only the key. The carousel is the element name field. The loop settings are plain keys in the element settings, so rebuild the array to keep their position. The gallery query type is settings query objectType. ';
+		$convert .= 'Leave alone anything called dynamic_data, which is Bricks own condition type, and any query type starting acf_, which is Bricks own ACF query loop. Our loop ordering setting sits ON those acf_ loops, so the setting key is renamed while the query type is not. ';
+		$convert .= 'The order of work matters. First, survey the site read only and report to me: plugin versions, the current sbbt_ option values, the card meta, and every old name found in page data with counts split between live posts and revisions, naming the templates and pages. ';
+		$convert .= 'Second, back up every meta row that contains an old name, byte for byte, into one option called sb_bricks_premigration_backup, along with the sbbt_ and sbsk_ options and the card meta. ';
+		$convert .= 'Third, I update the plugin on that site. You do not. Wait for me to say it is done. ';
+		$convert .= 'Fourth, check the automatic options conversion landed by comparing what SBBT_Convert wrote against the backup you took. ';
+		$convert .= 'Fifth, if the site uses the Image Carousel, convert one page that has it first, on its own, and let me look at the front end before you do the rest. It is the only change that renders nothing at all when it goes wrong. ';
+		$convert .= 'Sixth, convert the remaining rows, then prove it: zero old names left anywhere, the expected new names present with the counts matching the survey, every touched row still unserialising into an array, and the affected pages returning 200 with no fatal. ';
+		$convert .= 'Things that have caught us out before. Do not rely on re-saving a page in the builder to convert it: the builder binds controls by key, so an old key shows as an empty setting and a save can quietly drop the value. Convert the data first, then edit. ';
+		$convert .= 'An asset optimiser such as LiteSpeed combines CSS and JS, so the carousel stylesheet and script will not appear by filename in the page source even when they are loading: look for the rendered markup, brxe-sb-bricks-image-carousel and splide__slide, instead of the file names. ';
+		$convert .= 'Fix ACF CPT SVG Icons moved out of Bricks Tweaks into Site Kit, under Admin Settings. If it was switched on before the update, tell me, because it will need switching on again over there and nothing carries it across. ';
+		$convert .= 'The old names still work after the update, because the conditions keep an alias, the carousel keeps its old name registered through a class marked deprecated, and the loop settings fall back to the old keys. That is insurance, not a reason to skip the conversion. ';
+		$convert .= 'Never assume a write worked. Read it back in a fresh call and show me the numbers.';
+
+		echo '<h3 class=' . $q . 'sbbt-docs__heading' . $q . '>' . esc_html__( 'Converting another site to the new naming', 'sb-bricks-tweaks' ) . '</h3>';
+		echo '<p class=' . $q . 'description' . $q . '>' . esc_html__( 'For a site still on the old names. Copy this in as the first message of a new chat, then enable that site connector.', 'sb-bricks-tweaks' ) . '</p>';
+		echo '<textarea class=' . $q . 'large-text code sbbt-docs__prompt' . $q . ' rows=' . $q . '8' . $q . ' readonly onclick=' . $q . 'this.select();' . $q . '>' . esc_textarea( $convert ) . '</textarea>';
 		echo '<h3 class=' . $q . 'sbbt-docs__heading' . $q . '>' . esc_html__( 'The notes themselves', 'sb-bricks-tweaks' ) . '</h3>';
 
 		echo '<form method=' . $q . 'post' . $q . ' action=' . $q . esc_url( admin_url( 'admin-post.php' ) ) . $q . '>';

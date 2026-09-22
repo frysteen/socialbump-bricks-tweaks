@@ -28,7 +28,7 @@ is never loaded.
 | Group | What is in it |
 | --- | --- |
 | Conditions | ACF Relationship, ACF Repeater, Bricks Content, Post Type, WooCommerce Archive Display |
-| Extras | ACF Gallery Loop, ACF Loop Sorting, Default To WP Editor |
+| Extras | ACF Gallery Loop, ACF Loop Sorting, Default To WP Editor, Gutenberg Block Styles |
 | Elements | Image Carousel |
 
 The shared block below still calls this the Modules page, because Site Kit's
@@ -83,6 +83,7 @@ Default says whether a fresh install has it on.
 | ACF Gallery Loop | ACF | off | Adds each ACF gallery field to the query loop Type list, so you can loop its images and build the markup yourself. Any return format, with ordering options |
 | ACF Loop Sorting | ACF | off | An Order setting on ACF query loops: reversed, sorted or random. What ACF has saved never changes |
 | Default To WP Editor | | off | Opens the WordPress editor rather than the Bricks tab on posts with no Bricks content. The Bricks tab is still one click away |
+| Gutenberg Block Styles | | on | Puts back the block editor styles Bricks strips, on pages whose content has blocks, and only for the blocks used. Also gives the gallery block its Block spacing setting |
 | Image Carousel | | on | An SEO friendly carousel: real img tags with alt text, drag ordering, ACF gallery support, breakpoint controls, lightbox and continuous scroll |
 
 The WooCommerce Archive Display condition is the one to read first if you are
@@ -141,6 +142,66 @@ kind of loop and not the other. Needs ACF.
 WordPress editor rather than the Bricks tab, through admin_enqueue_scripts. The
 Bricks tab is still one click away. Handy on a site where most posts are written
 normally and only a few are built.
+
+**Gutenberg Block Styles.** On by default. Bricks dequeues wp-block-library and
+global-styles on every page it renders (Setup::deregister_styles(), on
+wp_print_styles at priority 100, no setting consulted). Right for pages built in
+Bricks, wrong for a post whose content is Gutenberg but displays through a Bricks
+single template: galleries lose their columns and wrap, images their cropping.
+restore() runs on wp_print_styles at 101, straight after, on singular pages whose
+content has blocks, and only when Bricks actually removed the library. It walks
+the blocks (inner blocks and reusable blocks included) and enqueues each core
+block's own stylesheet, the per-block wp-block-<name> handles WordPress already
+registers, plus block-library/common.min.css as sbbt-block-common. The layout
+rules come from wp_get_global_stylesheet( [ 'styles' ] ) filtered down to rules
+whose selector names is-layout-, printed as sbbt-block-layout: on a theme with no
+theme.json that part also carries body margin and padding resets, the default
+grey button and pullquote sizing, none of which should reach a Bricks site. Asking
+for base-layout-styles returns nothing on WordPress 7.1, which is why it is done
+this way. The colour and size presets (over 100 KB on the hub, mostly the palette)
+are added only when the content uses a has-*-color style class or var:preset.
+Pages with no block content are untouched, and it stays out of the builder.
+
+It also switches on Block spacing for the gallery block alone, through the
+wp_theme_json_data_theme filter: Bricks ships no theme.json, so the editor
+otherwise offers the gallery padding only. Switching the control on is only half
+of it: the gallery's own render writes --wp--style--unstable-gallery-gap into its
+wp-block-gallery-N rule, which only sizes the images, while the gap property
+itself comes from the layout support and is only written when the theme declares
+block spacing at the top level of a theme.json. Bricks does not, so the images
+shrank for a gap that never appeared. gallery_gap_css() on render_block_core/gallery
+adds the gap to that same rule through the style engine (block-supports context),
+turning presets like var:preset|spacing|60 into their variable. Declaring block
+spacing globally instead would have switched on WordPress's flow spacing rules
+too, which would fight the Typography snippet, so it is kept to the gallery.
+
+The gallery's control is the plain one, with link sides and a unit list (px, %,
+em, rem, vw, vh), because the filter also sets defaultSpacingSizes false and the
+units for core/gallery. With WordPress's generic presets on, the editor draws a
+preset slider per axis instead and loses the link toggle, which is how the hub
+first looked. The site-wide root settings are untouched. WordPress's custom box
+only takes a number and a unit, so a variable cannot be typed there; variables
+could only be offered as presets, which would bring the preset control back.
+
+The default gap is the Bricks theme style's Image Gallery spacing
+(settings['image-gallery']['gutter'], var(--card-gap) on the hub). default_gap()
+reads it through Theme_Styles::get_setting_by_key() on the front end, where Bricks
+has already picked the active style, and from the site-wide style (condition
+any) in the editor. It is written as --wp--style--gallery-gap-default, the first
+thing WordPress's gallery gap chain reads when a gallery has no gap of its own,
+so gap and image widths both follow it. A gap set on one gallery still wins.
+Only the base value is used, not per-breakpoint ones. editor_styles() on
+enqueue_block_assets puts the same rule, and Bricks' own
+uploads/bricks/css/global-variables.min.css (pure :root variables), into the
+editor, so the editor gap matches the page. The filter
+sbbt/gutenberg_styles/default_gallery_gap can change it. This replaces the
+gallery gap line that was going to go into the old Gutenberg Blocks snippet.
+
+If a site's galleries still sit in one row with this on, look for custom CSS
+forcing flex-wrap: nowrap on figure.wp-block-gallery. Epoxy Flooring Co had a
+WPCodeBox snippet doing exactly that, and the old SocialBUMP Gutenberg Blocks
+snippet on the hub replaced core's gallery layout with its own, ignoring the
+Columns and Aspect ratio settings. Both have been retired in favour of core.
 
 ### Elements
 
@@ -668,6 +729,13 @@ folder, and anything not carried back to the hub is gone.
 
 ### Things learned the hard way
 
+- **form.requestSubmit() only accepts a real submit button.** Pass it a button
+  with type=button, which is what data-sb-save allows, and the browser throws
+  and nothing is sent, while the button and the reminder both look exactly
+  right. SEO for AI's save button is type=button, so its settings pages
+  silently stopped saving. save-state.js now passes the button only when its
+  type is submit, and otherwise calls requestSubmit() with nothing. Found on
+  21 September 2026.
 - PHP declares top level classes and functions while compiling the file, before
   a line of it runs. A class_exists() guard inside the file that declares the
   class always sees its own class and returns, and the file never finishes. This
