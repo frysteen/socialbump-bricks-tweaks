@@ -4,7 +4,7 @@ Tags: bricks, acf
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.1.2
+Stable tag: 1.1.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -32,6 +32,9 @@ Extras:
 * Default To WP Editor: open the WordPress editor on posts with no Bricks content.
 
 == Changelog ==
+= 1.1.3 =
+* Reports to the SocialBUMP hub which SocialBUMP plugins this site has, their versions and whether each is active, whenever one changes and once a day, so the hub can show what is installed where. Only the site address and name, those plugin versions, and the WordPress and PHP versions are sent.
+
 = 1.1.2 =
 * Conditions: on the Blog page, the SocialBUMP conditions now check the Blog page itself rather than the first post in the list, so Bricks Content no longer shows the not-built-with-Bricks section on a Blog page built in Bricks. Inside query loops each post is still checked.
 
